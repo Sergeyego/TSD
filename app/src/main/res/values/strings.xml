@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">TSD</string>
+    <string name="action_menu">Меню</string>
+    <string name="action_acc_el">Отправить на склад электроды</string>
+    <string name="action_acc_wire">Отправить на склад проволоку</string>
+    <string name="action_acc_control_el">Маккировка поддонов электродов</string>
+    <string name="action_acc_control_wire">Маркировка поддонов проволоки</string>
+</resources>
