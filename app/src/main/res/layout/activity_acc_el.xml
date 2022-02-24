@@ -7,56 +7,63 @@
     android:orientation="vertical"
     tools:context=".AccElActivity">
 
-    <TableLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <TableRow>
 
             <TextView
-                android:layout_width="50dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="С"
-                android:textSize="14sp" />
+                android:textSize="16sp"
+                android:layout_margin="8sp"
+                android:layout_alignBaseline="@id/btnUpd"
+                android:id="@+id/lblBeg"/>
 
-            <EditText
-                android:layout_width="200dp"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:focusable="false"
-                android:inputType="date"
-                android:textSize="14sp" />
-
-        </TableRow>
-
-        <TableRow>
+                android:text="01.01.22"
+                android:textColor="#0000FF"
+                android:textSize="16sp"
+                android:layout_toRightOf="@+id/lblBeg"
+                android:layout_alignBaseline="@id/btnUpd"
+                android:id="@+id/dateBeg"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="По"
-                android:textSize="14sp" />
+                android:textSize="16sp"
+                android:layout_margin="8sp"
+                android:layout_toRightOf="@+id/dateBeg"
+                android:layout_alignBaseline="@id/btnUpd"
+                android:id="@+id/lblEnd"/>
 
-            <EditText
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:focusable="false"
-                android:inputType="date"
-                android:textSize="14sp" />
-        </TableRow>
-        <TableRow>
+                android:text="01.01.22"
+                android:textColor="#0000FF"
+                android:textSize="16sp"
+                android:layout_toRightOf="@+id/lblEnd"
+                android:layout_alignBaseline="@id/btnUpd"
+                android:id="@+id/dateEnd"/>
+
             <Button
-                android:text="Отправить"
+                android:text="Обновить"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_span="2"
+                android:layout_alignParentRight="true"
+                android:layout_margin="6sp"
+                android:textSize="12sp"
                 android:id="@+id/btnUpd"/>
-        </TableRow>
-    </TableLayout>
+
+    </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        tools:layout_editor_absoluteX="1dp"
-        tools:layout_editor_absoluteY="368dp"
         android:id="@+id/rvList"/>
 
 </androidx.appcompat.widget.LinearLayoutCompat>
