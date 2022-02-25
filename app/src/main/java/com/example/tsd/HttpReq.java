@@ -20,7 +20,7 @@ public class HttpReq extends AsyncTask<String , Void ,String> {
         HttpURLConnection urlConnection = null;
 
         try {
-            url = new URL(strings[0]);
+            url = new URL("http://192.168.1.10:3000/"+strings[0]);
             urlConnection = (HttpURLConnection) url.openConnection();
 
             int responseCode = urlConnection.getResponseCode();
