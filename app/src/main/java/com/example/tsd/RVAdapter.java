@@ -20,12 +20,14 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.AccViewHolder> {
         String type;
         Date dat;
         int id;
+        int id_type;
 
-        Acc(String num, String type, Date dat, int id) {
+        Acc(String num, String type, Date dat, int id, int id_type) {
             this.num = num;
             this.type = type;
             this.dat = dat;
             this.id = id;
+            this.id_type = id_type;
         }
     }
 
@@ -51,7 +53,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.AccViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull AccViewHolder holder, int position) {
-        Acc a = list.get(position);
+        Acc a = list.get(holder.getAdapterPosition());
         holder.num.setText(a.num);
         holder.dat.setText(DateFormat.format("dd.MM.yy", a.dat).toString());
         holder.type.setText(a.type);
@@ -60,7 +62,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.AccViewHolder> {
             @Override
             public void onClick(View v)
             {
-                onClickListener.onStateClick(a, position);
+                onClickListener.onStateClick(a, holder.getAdapterPosition());
             }
         });
     }

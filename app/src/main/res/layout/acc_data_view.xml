@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/cv_data"
+        >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/acc_data_mark"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Уони 13/55 ф 4.0 пачка 4 кг"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/acc_data_kvo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true"
+                android:paddingLeft="16dp"
+                android:textSize="16sp"
+                android:text="1200 кг" />
+
+            <TextView
+                android:id="@+id/acc_data_part"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/acc_data_mark"
+                android:textSize="16sp"
+                android:text="партия 0123 от 15.02.22" />
+
+            <TextView
+                android:id="@+id/acc_data_numcont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/acc_data_kvo"
+                android:layout_alignParentRight="true"
+                android:textSize="16sp"
+                android:text="поддон №1" />
+
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>
