@@ -12,10 +12,12 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.DecimalFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.List;
 
 public class AccElDataActivity extends AppCompatActivity {
@@ -24,6 +26,7 @@ public class AccElDataActivity extends AppCompatActivity {
     private List<AccDataAdapter.AccData> accsd;
     Button btnUpdData;
     int id_acc;
+    TextView lblTotal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +41,8 @@ public class AccElDataActivity extends AppCompatActivity {
 
         TextView lblType = (TextView) findViewById(R.id.lblElAccType);
         lblType.setText(type);
+
+        lblTotal = (TextView) findViewById(R.id.lblElAccItogo);
 
         btnUpdData = (Button) findViewById(R.id.btnUpdAccDataEl);
         
@@ -66,37 +71,58 @@ public class AccElDataActivity extends AppCompatActivity {
 
     private void updList(String jsonResp){
         accsd.clear();
+        double total=0;
         JSONArray jsonArray = null;
         try {
             jsonArray = new JSONArray(jsonResp);
         } catch (JSONException e) {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_SHORT).show();
+            lblTotal.setText("");
             return;
         }
         for (int i=0; i<jsonArray.length();i++){
             try {
                 JSONObject obj=jsonArray.getJSONObject(i);
-                /*int id=obj.getInt("id");
-                int id_type=obj.getInt("id_ist");
-                String num=obj.getString("num");
-                JSONObject objType = obj.getJSONObject("prod_nakl_tip");
-                String type=objType.getString("nam");
-                boolean en = objType.getBoolean("en");
-                String sDate = obj.getString("dat");
+                int id=obj.getInt("id");
+                int id_part=obj.getInt("id_part");
+                int numcont=obj.getInt("numcont");
+                double kvo=obj.getDouble("kvo");
+                JSONObject objParti = obj.getJSONObject("parti");
+                String npart=objParti.getString("n_s");
+                String datPart=objParti.getString("dat_part");
+                double diam=objParti.getDouble("diam");
+                String marka=objParti.getJSONObject("elrtr").getString("marka");
+                String packEd=objParti.getJSONObject("el_pack").getString("pack_ed");
+                String pack_group=objParti.getJSONObject("el_pack").getString("pack_group");
+                JSONObject objNakl = obj.getJSONObject("prod_nakl");
+                String numNakl=objNakl.getString("num");
+                String datNakl=objNakl.getString("dat");
+                String prefix=objNakl.getJSONObject("prod_nakl_tip").getString("prefix");
+                //String typeNam=objNakl.getJSONObject("prod_nakl_tip").getString("nam");
+
                 SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyy-MM-dd");
                 ParsePosition pos = new ParsePosition(0);
-                Date stringDate = simpledateformat.parse(sDate,pos);
-                if (en){
-                    //AccDataAdapter.AccData a = new AccDataAdapter.AccData(num,type,stringDate,id,id_type);
-                    //accsd.add(a);
-                }*/
+                Calendar cal=Calendar.getInstance();
+                cal.setTime(simpledateformat.parse(datNakl,pos));
+
+                String mnom=marka+" ф "+String.valueOf(diam)+"\n("+packEd+"/"+pack_group+")";
+                String part=npart+" от "+datPart;
+                String namcont="EUR-"+prefix+cal.get(Calendar.YEAR)+"-"+numNakl+"-"+String.valueOf(numcont);
+                total+=kvo;
+
+                AccDataAdapter.AccData a = new AccDataAdapter.AccData(mnom,part+"\n"+namcont,namcont,numcont,id,id_part,kvo);
+                accsd.add(a);
+
             } catch (JSONException e) {
                 e.printStackTrace();
                 Toast.makeText(getApplicationContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_SHORT).show();
+                lblTotal.setText("");
                 return;
             }
         }
+        DecimalFormat ourForm = new DecimalFormat("###,##0.00");
+        lblTotal.setText("Итого: "+ourForm.format(total)+" кг");
     }
 
     private class HttpReqGet extends HttpReq{
@@ -110,7 +136,7 @@ public class AccElDataActivity extends AppCompatActivity {
             AccDataAdapter.OnStateClickListener stateClickListener = new AccDataAdapter.OnStateClickListener() {
                 @Override
                 public void onStateClick(AccDataAdapter.AccData a, int position) {
-                    //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
                     /*Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
                     intent.putExtra("id",a.id);
                     intent.putExtra("id",a.id_type);

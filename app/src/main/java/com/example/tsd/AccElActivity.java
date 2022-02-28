@@ -9,6 +9,7 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -177,7 +178,7 @@ public class AccElActivity extends AppCompatActivity {
                     //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
                     intent.putExtra("id",a.id);
-                    intent.putExtra("id",a.id_type);
+                    intent.putExtra("id_type",a.id_type);
                     intent.putExtra("num",a.num);
                     intent.putExtra("type",a.type);
                     intent.putExtra("date",DateFormat.format("dd.MM.yy", a.dat).toString());
@@ -188,6 +189,19 @@ public class AccElActivity extends AppCompatActivity {
             RVAdapter adapter = new RVAdapter(accs,stateClickListener);
             rv.setAdapter(adapter);
         }
+    }
+
+    private void newAccEl(){
+        Toast.makeText(getApplicationContext(),"Новое отправление", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_F3){
+            newAccEl();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
@@ -202,7 +216,7 @@ public class AccElActivity extends AppCompatActivity {
         int id = item.getItemId();
         switch(id){
             case R.id.action_acc_new:
-                Toast.makeText(getApplicationContext(),"Новое отправление", Toast.LENGTH_SHORT).show();
+                newAccEl();
                 return true;
         }
         return super.onOptionsItemSelected(item);

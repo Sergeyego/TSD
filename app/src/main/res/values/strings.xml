@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">TSD</string>
-    <string name="action_acc_new">Новая</string>
+    <string name="action_acc_new">Новая(F3)</string>
 </resources>

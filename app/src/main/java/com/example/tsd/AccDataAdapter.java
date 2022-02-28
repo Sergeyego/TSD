@@ -7,6 +7,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.text.DecimalFormat;
 import java.util.List;
 
 public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewHolder> {
@@ -14,14 +16,16 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
     public static class AccData {
         String marka;
         String parti;
+        String namcont;
         int numcont;
         int id;
         int id_part;
         double kvo;
 
-        AccData(String marka, String parti, int numcont, int id, int id_part, double kvo) {
+        AccData(String marka, String parti, String namcont, int numcont, int id, int id_part, double kvo) {
             this.marka = marka;
             this.parti = parti;
+            this.namcont = namcont;
             this.numcont = numcont;
             this.id = id;
             this.id_part = id_part;
@@ -53,9 +57,10 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
     public void onBindViewHolder(@NonNull AccViewHolder holder, int position) {
         AccData a = list.get(holder.getAdapterPosition());
         holder.marka.setText(a.marka);
-        holder.parti.setText(a.parti);
-        holder.kvo.setText(String.format("%.0f", a.kvo));
-        holder.numcont.setText(String.valueOf(a.kvo));
+        holder.parti.setText("партия №"+a.parti);
+        DecimalFormat ourForm = new DecimalFormat("###,##0.00");
+        holder.kvo.setText(ourForm.format(a.kvo)+" кг");
+        holder.numcont.setText("поддон №"+String.valueOf(a.numcont));
 
         holder.itemView.setOnClickListener(new View.OnClickListener(){
             @Override

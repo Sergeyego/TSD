@@ -12,23 +12,26 @@
         android:layout_height="wrap_content">
 
         <TextView
+            android:id="@+id/lblElAccType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Приемка"
-            android:textSize="16sp"
-            android:layout_marginTop="4sp"
             android:layout_marginLeft="4sp"
-            android:id="@+id/lblElAccType"/>
+            android:layout_marginTop="4sp"
+            android:text="Приемка"
+            android:textSize="16sp" />
 
         <TextView
+            android:id="@+id/lblElAccItogo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Итого: "
-            android:textSize="16sp"
-            android:textColor="#000000"
-            android:layout_margin="4sp"
             android:layout_below="@+id/lblElAccType"
-            android:id="@+id/lblElAccItogo"/>
+            android:layout_marginStart="4sp"
+            android:layout_marginTop="4sp"
+            android:layout_marginEnd="4sp"
+            android:layout_marginBottom="4sp"
+            android:text="Итого: "
+            android:textColor="#000000"
+            android:textSize="16sp" />
 
         <Button
             android:text="Обновить"

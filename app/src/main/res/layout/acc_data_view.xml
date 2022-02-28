@@ -29,8 +29,8 @@
                 android:layout_alignParentTop="true"
                 android:layout_alignParentRight="true"
                 android:paddingLeft="16dp"
-                android:textSize="16sp"
-                android:text="1200 кг" />
+                android:text="1200 кг"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/acc_data_part"
@@ -46,8 +46,8 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/acc_data_kvo"
                 android:layout_alignParentRight="true"
-                android:textSize="16sp"
-                android:text="поддон №1" />
+                android:text="поддон №1"
+                android:textSize="16sp" />
 
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
