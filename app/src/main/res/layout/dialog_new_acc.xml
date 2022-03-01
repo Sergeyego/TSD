@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+        <TextView
+            android:id="@+id/lblAccNum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="30dp"
+            android:text="Номер"
+            android:textSize="16sp"
+            />
+
+        <EditText
+            android:id="@+id/editTextAccNum"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/lblAccNum"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_toRightOf="@id/lblAccNum"
+            android:imeOptions="actionDone"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/lblAccDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblAccNum"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="30dp"
+            android:text="Дата"
+            android:textSize="16sp"
+            />
+
+        <TextView
+            android:id="@+id/textViewAccDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/lblAccDate"
+            android:layout_alignStart="@id/editTextAccNum"
+            android:text="01.01.2022"
+            android:textColor="#0000FF"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/lblAccType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblAccDate"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="30dp"
+            android:text="Тип"
+            android:textSize="16sp"
+            />
+
+        <Spinner
+            android:id="@+id/spinnerAccType"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_below="@id/lblAccType"
+            android:textSize="16sp"
+            />
+
+        <Button
+            android:id="@+id/btnAccNewOk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Запись(F1)"
+            android:layout_below="@id/spinnerAccType"
+            android:layout_alignParentLeft="true"
+            android:layout_marginTop="50dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="20dp"
+            />
+
+        <Button
+            android:id="@+id/btnAccNewCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Отмена(F2)"
+            android:layout_alignBaseline="@id/btnAccNewOk"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="10dp"
+            />
+
+    </RelativeLayout>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

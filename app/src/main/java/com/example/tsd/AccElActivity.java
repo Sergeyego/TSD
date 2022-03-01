@@ -193,6 +193,14 @@ public class AccElActivity extends AppCompatActivity {
 
     private void newAccEl(){
         Toast.makeText(getApplicationContext(),"Новое отправление", Toast.LENGTH_SHORT).show();
+        Bundle bundle = new Bundle();
+        bundle.putString("num", "0046");
+        bundle.putString("dat","03.01.2022");
+        bundle.putInt("id_type",2);
+
+        DialogAccNew dialogNew = new DialogAccNew();
+        dialogNew.setArguments(bundle);
+        dialogNew.show(getSupportFragmentManager(), "custom");
     }
 
     @Override
