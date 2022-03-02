@@ -66,7 +66,25 @@ public class AccElDataActivity extends AppCompatActivity {
         
         String id=String.valueOf(id_acc);
         String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,numcont,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip(prefix,nam))&order=id";
-        new AccElDataActivity.HttpReqGet().execute(query);
+
+        HttpReq.onPostExecuteListener getAccDataListener = new HttpReq.onPostExecuteListener() {
+            @Override
+            public void postExecute(String resp, String err) {
+                //Toast.makeText(getApplicationContext(),"resp: "+server_response, Toast.LENGTH_SHORT).show();
+
+                updList(resp);
+                AccDataAdapter.OnStateClickListener stateClickListener = new AccDataAdapter.OnStateClickListener() {
+                    @Override
+                    public void onStateClick(AccDataAdapter.AccData a, int position) {
+                        Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
+                    }
+                };
+                AccDataAdapter adapter = new AccDataAdapter(accsd,stateClickListener);
+                rvData.setAdapter(adapter);
+            }
+        };
+
+        new HttpReq(getAccDataListener).execute(query);
     }
 
     private void updList(String jsonResp){
@@ -123,32 +141,5 @@ public class AccElDataActivity extends AppCompatActivity {
         }
         DecimalFormat ourForm = new DecimalFormat("###,##0.00");
         lblTotal.setText("Итого: "+ourForm.format(total)+" кг");
-    }
-
-    private class HttpReqGet extends HttpReq{
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //Toast.makeText(getApplicationContext(),"resp: "+server_response, Toast.LENGTH_SHORT).show();
-
-            updList(server_response);
-
-            AccDataAdapter.OnStateClickListener stateClickListener = new AccDataAdapter.OnStateClickListener() {
-                @Override
-                public void onStateClick(AccDataAdapter.AccData a, int position) {
-                    Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
-                    /*Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
-                    intent.putExtra("id",a.id);
-                    intent.putExtra("id",a.id_type);
-                    intent.putExtra("num",a.num);
-                    intent.putExtra("type",a.type);
-                    intent.putExtra("date",DateFormat.format("dd.MM.yy", a.dat).toString());
-                    startActivity(intent);*/
-                }
-            };
-
-            AccDataAdapter adapter = new AccDataAdapter(accsd,stateClickListener);
-            rvData.setAdapter(adapter);
-        }
     }
 }

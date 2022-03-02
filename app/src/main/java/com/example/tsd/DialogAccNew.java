@@ -6,6 +6,7 @@ import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -29,11 +30,15 @@ import java.util.List;
 
 public class DialogAccNew extends DialogFragment  {
 
-    Button btnSave, btnCancel;
-    EditText edtNum;
-    TextView dateView;
-    Spinner spinner;
+    private Button btnSave, btnCancel;
+    private EditText edtNum;
+    private TextView dateView;
+    private Spinner spinner;
     private Calendar date;
+
+    public DialogAccNew(acceptListener aListener) {
+        this.aListener = aListener;
+    }
 
     public static class AccType {
         String nam;
@@ -49,16 +54,25 @@ public class DialogAccNew extends DialogFragment  {
         }
     }
 
+    interface acceptListener {
+        void accept(String num, Calendar dat, int id_type);
+    }
+    private final DialogAccNew.acceptListener aListener;
+
     private List<AccType> list;
     private int currentIdType;
+    private String queryType;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        getDialog().setTitle("Title!");
+        getDialog().setTitle("Отправление");
         getDialog().setCanceledOnTouchOutside(false);
 
         list = new ArrayList<>();
 
         date = Calendar.getInstance();
+        String num = "";
+        currentIdType = 1;
+        queryType = "";
 
         View v = inflater.inflate(R.layout.dialog_new_acc, null);
         btnSave = (Button) v.findViewById(R.id.btnAccNewOk);
@@ -67,7 +81,6 @@ public class DialogAccNew extends DialogFragment  {
         dateView = (TextView) v.findViewById(R.id.textViewAccDate);
         spinner = (Spinner) v.findViewById(R.id.spinnerAccType);
 
-        String num = "";
         Bundle args = getArguments();
         if (args != null) {
             num = args.getString("num");
@@ -79,13 +92,34 @@ public class DialogAccNew extends DialogFragment  {
             date.setTime(stringDate);
 
             currentIdType=args.getInt("id_type");
+
+            queryType=args.getString("querytype");
         }
 
-        String query="prod_nakl_tip?en=eq.true&select=id,nam&order=nam";
-        new DialogAccNew.HttpTypesGet().execute(query);
+        HttpReq.onPostExecuteListener getTypeListener = new HttpReq.onPostExecuteListener() {
+            @Override
+            public void postExecute(String resp, String err) {
+                updList(resp);
+            }
+        } ;
+        HttpReq reqGetType = new HttpReq(getTypeListener);
+        reqGetType.execute(queryType);
 
         edtNum.setText(num);
         setLblDate();
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                AccType item = (AccType) adapterView.getItemAtPosition(i);
+                currentIdType=item.id;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
 
         DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -111,6 +145,7 @@ public class DialogAccNew extends DialogFragment  {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                aListener.accept(edtNum.getText().toString(),date,currentIdType);
                 dismiss();
             }
         });
@@ -130,10 +165,10 @@ public class DialogAccNew extends DialogFragment  {
 
     private void updList(String jsonResp){
         JSONArray jsonArray = null;
+        list.clear();
         try {
             jsonArray = new JSONArray(jsonResp);
         } catch (JSONException e) {
-            e.printStackTrace();
             Toast.makeText(getContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -146,7 +181,6 @@ public class DialogAccNew extends DialogFragment  {
                 list.add(a);
 
             } catch (JSONException e) {
-                e.printStackTrace();
                 Toast.makeText(getContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -161,15 +195,6 @@ public class DialogAccNew extends DialogFragment  {
                 spinner.setSelection(i);
                 break;
             }
-        }
-    }
-
-    private class HttpTypesGet extends HttpReq{
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //Toast.makeText(getContext(),"resp: "+server_response, Toast.LENGTH_SHORT).show();
-            updList(server_response);
         }
     }
 }

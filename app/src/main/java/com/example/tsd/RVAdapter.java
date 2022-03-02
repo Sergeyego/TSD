@@ -1,6 +1,7 @@
 package com.example.tsd;
 
 import android.text.format.DateFormat;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,7 +73,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.AccViewHolder> {
         return list.size();
     }
 
-    public static class AccViewHolder extends RecyclerView.ViewHolder {
+    public static class AccViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
         CardView cv;
         TextView num;
         TextView dat;
@@ -80,10 +81,18 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.AccViewHolder> {
 
         AccViewHolder(View itemView) {
             super(itemView);
+            itemView.setLongClickable(true);
             cv = (CardView) itemView.findViewById(R.id.cv);
             num = (TextView) itemView.findViewById(R.id.acc_num);
             dat = (TextView) itemView.findViewById(R.id.acc_dat);
             type = (TextView) itemView.findViewById(R.id.acc_type);
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
+            contextMenu.setHeaderTitle("Select The Action");
+            contextMenu.add(0, view.getId(), 0, "Call");//groupId, itemId, order, title
+            contextMenu.add(0, view.getId(), 0, "SMS");
         }
     }
 

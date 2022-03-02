@@ -33,10 +33,10 @@ import java.util.List;
 
 public class AccElActivity extends AppCompatActivity {
 
-    Button btnUpd;
-    TextView tvDateBeg;
-    TextView tvDateEnd;
-    RecyclerView rv;
+    private Button btnUpd;
+    private TextView tvDateBeg;
+    private TextView tvDateEnd;
+    private RecyclerView rv;
     private Calendar dateBeg, dateEnd;
 
     private List<RVAdapter.Acc> accs;
@@ -108,13 +108,15 @@ public class AccElActivity extends AppCompatActivity {
         rv.setLayoutManager(llm);
         rv.addItemDecoration(new DividerItemDecoration(this,LinearLayoutManager.VERTICAL));
 
+        registerForContextMenu(rv);
+
         btnUpd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                makeGetRequest();
+                refresh();
             }
         });
-        makeGetRequest();
+        refresh();
     }
 
     private void setLblDate(){
@@ -122,11 +124,41 @@ public class AccElActivity extends AppCompatActivity {
         tvDateEnd.setText(DateFormat.format("dd.MM.yy", dateEnd).toString());
     }
 
-    private void makeGetRequest() {
+    private void refresh() {
+
         String sdBeg=DateFormat.format("yyyy-MM-dd", dateBeg).toString();
         String sdEnd=DateFormat.format("yyyy-MM-dd", dateEnd).toString();
         String query="prod_nakl?dat=gte.'"+sdBeg+"'&dat=lte.'"+sdEnd+"'&select=id,dat,num,id_ist,prod_nakl_tip(nam,en)&order=dat.desc,num.desc";
-        new HttpReqGet().execute(query);
+
+        HttpReq.onPostExecuteListener getAccListener = new HttpReq.onPostExecuteListener() {
+            @Override
+            public void postExecute(String resp, String err) {
+                if (!err.isEmpty()){
+                    Toast.makeText(getApplicationContext(),err, Toast.LENGTH_LONG).show();
+                } else {
+                    updList(resp);
+                    RVAdapter.OnStateClickListener stateClickListener = new RVAdapter.OnStateClickListener() {
+                        @Override
+                        public void onStateClick(RVAdapter.Acc a, int position) {
+                            //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
+                            intent.putExtra("id",a.id);
+                            intent.putExtra("id_type",a.id_type);
+                            intent.putExtra("num",a.num);
+                            intent.putExtra("type",a.type);
+                            intent.putExtra("date",DateFormat.format("dd.MM.yy", a.dat).toString());
+                            startActivity(intent);
+                        }
+                    };
+                    RVAdapter adapter = new RVAdapter(accs,stateClickListener);
+                    rv.setAdapter(adapter);
+                }
+            }
+        };
+
+        HttpReq getAcc = new HttpReq(getAccListener);
+        getAcc.execute(query);
+
     }
 
     private void updList(String jsonResp){
@@ -136,7 +168,7 @@ public class AccElActivity extends AppCompatActivity {
             jsonArray = new JSONArray(jsonResp);
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(getApplicationContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             return;
         }
         for (int i=0; i<jsonArray.length();i++){
@@ -164,43 +196,57 @@ public class AccElActivity extends AppCompatActivity {
         }
     }
 
-    private class HttpReqGet extends HttpReq{
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //Toast.makeText(getApplicationContext(),"resp: "+server_response, Toast.LENGTH_SHORT).show();
-
-            updList(server_response);
-
-            RVAdapter.OnStateClickListener stateClickListener = new RVAdapter.OnStateClickListener() {
-                @Override
-                public void onStateClick(RVAdapter.Acc a, int position) {
-                    //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
-                    intent.putExtra("id",a.id);
-                    intent.putExtra("id_type",a.id_type);
-                    intent.putExtra("num",a.num);
-                    intent.putExtra("type",a.type);
-                    intent.putExtra("date",DateFormat.format("dd.MM.yy", a.dat).toString());
-                    startActivity(intent);
-                }
-            };
-
-            RVAdapter adapter = new RVAdapter(accs,stateClickListener);
-            rv.setAdapter(adapter);
-        }
-    }
-
     private void newAccEl(){
-        Toast.makeText(getApplicationContext(),"Новое отправление", Toast.LENGTH_SHORT).show();
-        Bundle bundle = new Bundle();
-        bundle.putString("num", "0046");
-        bundle.putString("dat","03.01.2022");
-        bundle.putInt("id_type",2);
 
-        DialogAccNew dialogNew = new DialogAccNew();
-        dialogNew.setArguments(bundle);
-        dialogNew.show(getSupportFragmentManager(), "custom");
+        Calendar date = Calendar.getInstance();
+        Bundle bundle = new Bundle();
+        int n=0;
+        if (accs.size()>0){
+            String num=accs.get(0).num;
+            n = Integer.parseInt(num);
+        }
+        n++;
+        bundle.putString("num", String.format("%04d",n));
+        bundle.putString("dat",DateFormat.format("dd.MM.yyyy", date).toString());
+        bundle.putInt("id_type",1);
+        bundle.putString("querytype","prod_nakl_tip?en=eq.true&select=id,nam&order=nam");
+
+        DialogAccNew.acceptListener a = new DialogAccNew.acceptListener() {
+            @Override
+            public void accept(String num, Calendar dat, int id_type) {
+                //Toast.makeText(getApplicationContext(),"OK: "+num+" "+String.valueOf(id_type), Toast.LENGTH_SHORT).show();
+                HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
+                    @Override
+                    public void postExecute(String resp, String err) {
+                        Toast.makeText(getApplicationContext(),resp, Toast.LENGTH_LONG).show();
+                        if (dat.after(dateEnd)){
+                            dateEnd=dat;
+                            setLblDate();
+                        }
+                        refresh();
+                    }
+                };
+
+                JSONObject obj = new JSONObject();
+                try {
+                    obj.put("num", num);
+                    obj.put("id_ist",id_type);
+                    obj.put("dat",DateFormat.format("yyyy-MM-dd", dat).toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                String[] par = new String[3];
+                par[0]="prod_nakl";
+                par[1]="POST";
+                par[2]= obj.toString();
+                new HttpReq(listener).execute(par);
+            }
+        };
+
+        DialogAccNew dialog = new DialogAccNew(a);
+        dialog.setArguments(bundle);
+        dialog.show(getSupportFragmentManager(), "dialogElAccNew");
     }
 
     @Override
