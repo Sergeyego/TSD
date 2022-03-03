@@ -16,6 +16,9 @@ import java.util.List;
 
 public class RVAdapter extends RecyclerView.Adapter<RVAdapter.AccViewHolder> {
 
+    public static final int MENU_ACC_EDT = 0;
+    public static final int MENU_ACC_DEL = 1;
+
     public static class Acc {
         String num;
         String type;
@@ -81,19 +84,18 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.AccViewHolder> {
 
         AccViewHolder(View itemView) {
             super(itemView);
-            itemView.setLongClickable(true);
             cv = (CardView) itemView.findViewById(R.id.cv);
             num = (TextView) itemView.findViewById(R.id.acc_num);
             dat = (TextView) itemView.findViewById(R.id.acc_dat);
             type = (TextView) itemView.findViewById(R.id.acc_type);
+            itemView.setOnCreateContextMenuListener(this);
         }
 
         @Override
         public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
-            contextMenu.setHeaderTitle("Select The Action");
-            contextMenu.add(0, view.getId(), 0, "Call");//groupId, itemId, order, title
-            contextMenu.add(0, view.getId(), 0, "SMS");
+            contextMenu.setHeaderTitle("Выберите действие");
+            contextMenu.add(this.getAdapterPosition(), MENU_ACC_EDT, 1, "Редактировать");
+            contextMenu.add(this.getAdapterPosition(), MENU_ACC_DEL, 2, "Удалить");
         }
     }
-
 }

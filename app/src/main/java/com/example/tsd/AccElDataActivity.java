@@ -1,10 +1,15 @@
 package com.example.tsd;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -141,5 +146,80 @@ public class AccElDataActivity extends AppCompatActivity {
         }
         DecimalFormat ourForm = new DecimalFormat("###,##0.00");
         lblTotal.setText("Итого: "+ourForm.format(total)+" кг");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_acc, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        switch(id){
+            case R.id.action_acc_new:
+                newAccDataEl();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_F3){
+            newAccDataEl();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void newAccDataDialog(int id_p, double kvo, int kvom){
+        Bundle bundle = new Bundle();
+        int n=1;
+        if (accsd.size()>0){
+            n+=accsd.get(accsd.size()-1).numcont;
+        }
+        bundle.putInt("idpart",id_p);
+        bundle.putDouble("kvo",kvo);
+        bundle.putInt("kvom",kvom);
+        bundle.putInt("numcont",n);
+        bundle.putString("querypart","parti?id=eq."+String.valueOf(id_p)+"&select=n_s,dat_part,diam,elrtr(marka),el_pack(pack_ed,pack_group),istoch(nam)");
+
+        DialogAccDataNew.acceptListener listener = new DialogAccDataNew.acceptListener() {
+            @Override
+            public void accept(int id_part, double kvo, int kvom, int numcont) {
+                Toast.makeText(getApplicationContext(),String.valueOf(id_part), Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        DialogAccDataNew dialog = new DialogAccDataNew(listener);
+        dialog.setArguments(bundle);
+        dialog.show(getSupportFragmentManager(), "dialogElAccDataNew");
+    }
+
+    private void newAccDataEl(){
+
+        DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
+            @Override
+            public void accept(String barcode) {
+                //Toast.makeText(AccElDataActivity.this,barcode, Toast.LENGTH_SHORT).show();
+                if (barcode.length()==40){
+                    String id_part=barcode.substring(14,21);
+                    id_part=id_part.replace("_","");
+                    int id_p=Integer.parseInt(id_part);
+                    int kvo=Integer.parseInt(barcode.substring(30,36));
+                    int kvop=Integer.parseInt(barcode.substring(36));
+                    newAccDataDialog(id_p,kvo/100.0,kvop);
+                    //Toast.makeText(AccElDataActivity.this,id_p+" "+kvo+" "+kvop, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+
+        DialogBarcode dialog = new DialogBarcode(listener);
+        dialog.show(getSupportFragmentManager(), "dialogElAccBarcode");
     }
 }

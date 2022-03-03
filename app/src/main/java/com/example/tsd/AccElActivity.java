@@ -5,7 +5,9 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.format.DateFormat;
@@ -134,7 +136,7 @@ public class AccElActivity extends AppCompatActivity {
             @Override
             public void postExecute(String resp, String err) {
                 if (!err.isEmpty()){
-                    Toast.makeText(getApplicationContext(),err, Toast.LENGTH_LONG).show();
+                    Toast.makeText(AccElActivity.this,err, Toast.LENGTH_LONG).show();
                 } else {
                     updList(resp);
                     RVAdapter.OnStateClickListener stateClickListener = new RVAdapter.OnStateClickListener() {
@@ -168,7 +170,7 @@ public class AccElActivity extends AppCompatActivity {
             jsonArray = new JSONArray(jsonResp);
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(getApplicationContext(),e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(AccElActivity.this,e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             return;
         }
         for (int i=0; i<jsonArray.length();i++){
@@ -190,7 +192,7 @@ public class AccElActivity extends AppCompatActivity {
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
-                Toast.makeText(getApplicationContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AccElActivity.this,"Не удалось разобрать ответ от сервера", Toast.LENGTH_LONG).show();
                 return;
             }
         }
@@ -218,12 +220,16 @@ public class AccElActivity extends AppCompatActivity {
                 HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
                     @Override
                     public void postExecute(String resp, String err) {
-                        Toast.makeText(getApplicationContext(),resp, Toast.LENGTH_LONG).show();
-                        if (dat.after(dateEnd)){
-                            dateEnd=dat;
-                            setLblDate();
+                        if (err.isEmpty()){
+                            Toast.makeText(AccElActivity.this,resp, Toast.LENGTH_LONG).show();
+                            if (dat.after(dateEnd)){
+                                dateEnd=dat;
+                                setLblDate();
+                            }
+                            refresh();
+                        } else {
+                            Toast.makeText(AccElActivity.this,err, Toast.LENGTH_LONG).show();
                         }
-                        refresh();
                     }
                 };
 
@@ -274,5 +280,101 @@ public class AccElActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        int pos = item.getGroupId();
+        if (pos>=0 && pos<accs.size()){
+            switch (item.getItemId()) {
+                case RVAdapter.MENU_ACC_EDT:
+                    edtAcc(pos);
+                    break;
+                case RVAdapter.MENU_ACC_DEL:
+                    delAcc(pos);
+                    break;
+            }
+        }
+        return super.onContextItemSelected(item);
+    }
+
+    private void delAcc(int pos) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(AccElActivity.this);
+        builder.setTitle("Подтвердите удаление")
+                .setMessage("Удалить "+accs.get(pos).num+"?")
+                .setCancelable(false)
+                .setPositiveButton("Да",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+
+                                HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
+                                    @Override
+                                    public void postExecute(String resp, String err) {
+                                        if (err.isEmpty()) {
+                                            refresh();
+                                        } else {
+                                            Toast.makeText(AccElActivity.this,err, Toast.LENGTH_LONG).show();
+                                        }
+                                        //Toast.makeText(getApplicationContext(),resp, Toast.LENGTH_LONG).show();
+                                    }
+                                };
+
+                                String[] par = new String[3];
+                                par[0]="prod_nakl?id=eq."+String.valueOf(accs.get(pos).id);
+                                par[1]="DELETE";
+                                par[2]= "";
+                                new HttpReq(listener).execute(par);
+
+                            }
+                        }).setNegativeButton("Нет",null);
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void edtAcc(int pos) {
+
+        Bundle bundle = new Bundle();
+        bundle.putString("num", accs.get(pos).num);
+        bundle.putString("dat",DateFormat.format("dd.MM.yyyy", accs.get(pos).dat).toString());
+        bundle.putInt("id_type",accs.get(pos).id_type);
+        bundle.putString("querytype","prod_nakl_tip?en=eq.true&select=id,nam&order=nam");
+
+        DialogAccNew.acceptListener a = new DialogAccNew.acceptListener() {
+            @Override
+            public void accept(String num, Calendar dat, int id_type) {
+                //Toast.makeText(getApplicationContext(),"OK: "+num+" "+String.valueOf(id_type), Toast.LENGTH_SHORT).show();
+                HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
+                    @Override
+                    public void postExecute(String resp, String err) {
+                        //Toast.makeText(getApplicationContext(),resp, Toast.LENGTH_LONG).show();
+                        if (err.isEmpty()) {
+                            refresh();
+                        } else {
+                            Toast.makeText(AccElActivity.this,err, Toast.LENGTH_LONG).show();
+                        }
+                    }
+                };
+
+                JSONObject obj = new JSONObject();
+                try {
+                    obj.put("num", num);
+                    obj.put("id_ist",id_type);
+                    obj.put("dat",DateFormat.format("yyyy-MM-dd", dat).toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                String[] par = new String[3];
+                par[0]="prod_nakl?id=eq."+String.valueOf(accs.get(pos).id);
+                par[1]="PATCH";
+                par[2]= obj.toString();
+                new HttpReq(listener).execute(par);
+            }
+        };
+
+        DialogAccNew dialog = new DialogAccNew(a);
+        dialog.setArguments(bundle);
+        dialog.show(getSupportFragmentManager(), "dialogElAccEdt");
     }
 }

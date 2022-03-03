@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <TextView
+            android:id="@+id/lblAccDataNewMarka"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Марка"
+            android:textSize="16sp"
+            android:textColor="@color/black"/>
+        <TextView
+            android:id="@+id/lblAccDataNewPack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblAccDataNewMarka"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Упаковка"
+            android:textSize="16sp"
+            android:textColor="@color/black"/>
+        <TextView
+            android:id="@+id/lblAccDataNewPart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblAccDataNewPack"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Партия"
+            android:textSize="16sp"
+            android:textColor="@color/black"/>
+        <TextView
+            android:id="@+id/lblAccNewKvo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblAccDataNewPart"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Масса нетто, кг"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/editTextAccNewKvo"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/lblAccNewKvo"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_toRightOf="@id/lblAccNewKvo"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:inputType="numberDecimal"
+            android:digits="0123456789."/>
+
+        <TextView
+            android:id="@+id/lblAccNewKvoM"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblAccNewKvo"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Количество мест"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/editTextAccNewKvoM"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/lblAccNewKvoM"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_toRightOf="@id/lblAccNewKvoM"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:inputType="number"/>
+
+        <TextView
+            android:id="@+id/lblAccNewNumPal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblAccNewKvoM"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Номер поддона"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/editTextAccNewNumPal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/lblAccNewNumPal"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_toRightOf="@id/lblAccNewNumPal"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:inputType="number"/>
+
+        <Button
+            android:id="@+id/btnAccDataNewOk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblAccNewNumPal"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginRight="20dp"
+            android:text="Запись(F1)" />
+
+        <Button
+            android:id="@+id/btnAccDataNewCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Отмена(F2)"
+            android:layout_alignBaseline="@id/btnAccDataNewOk"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="10dp"
+            />
+
+    </RelativeLayout>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

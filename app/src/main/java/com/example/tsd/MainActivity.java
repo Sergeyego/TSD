@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         //Toast.makeText(getApplicationContext(), "Нажата кнопка "+event.toString(), Toast.LENGTH_SHORT).show();
-        if (keyCode == KeyEvent.KEYCODE_4 || keyCode == KeyEvent.KEYCODE_G){
+        if (event.getKeyCode() == KeyEvent.KEYCODE_4){
             newAccEl();
             return true;
         }

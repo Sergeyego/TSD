@@ -3,6 +3,7 @@ package com.example.tsd;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -156,8 +157,26 @@ public class DialogAccNew extends DialogFragment  {
                 dismiss();
             }
         });
+
+        edtNum.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                //Toast.makeText(getContext(),keyEvent.toString(), Toast.LENGTH_SHORT).show();
+                if (keyEvent.getKeyCode()==KeyEvent.KEYCODE_F1){
+                    aListener.accept(edtNum.getText().toString(),date,currentIdType);
+                    dismiss();
+                    return true;
+                } else if (keyEvent.getKeyCode()==KeyEvent.KEYCODE_F2) {
+                    dismiss();
+                    return true;
+                }
+                return false;
+            }
+        });
         return v;
     }
+
+
 
     private void setLblDate(){
         dateView.setText(DateFormat.format("dd.MM.yyyy", date).toString());
