@@ -13,6 +13,7 @@
         <entry key="app/src/main/res/layout/dialog_new_acc_data.xml" value="0.5" />
         <entry key="app/src/main/res/layout/dialog_scan.xml" value="0.5" />
         <entry key="app/src/main/res/menu/menu_acc.xml" value="1.292857142857143" />
+        <entry key="app/src/main/res/menu/menu_acc_data.xml" value="0.23229166666666667" />
       </map>
     </option>
   </component>

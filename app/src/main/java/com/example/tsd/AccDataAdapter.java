@@ -26,8 +26,9 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
         int id;
         int id_part;
         double kvo;
+        boolean ok;
 
-        AccData(String marka, String parti, String namcont, int numcont, int id, int id_part, double kvo, int kvom) {
+        AccData(String marka, String parti, String namcont, int numcont, int id, int id_part, double kvo, int kvom, boolean ok) {
             this.marka = marka;
             this.parti = parti;
             this.namcont = namcont;
@@ -36,6 +37,7 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
             this.id_part = id_part;
             this.kvo = kvo;
             this.kvom=kvom;
+            this.ok=ok;
         }
     }
 

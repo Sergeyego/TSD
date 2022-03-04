@@ -4,9 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,14 +15,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -39,9 +34,9 @@ public class AccElActivity extends AppCompatActivity {
     private TextView tvDateBeg;
     private TextView tvDateEnd;
     private RecyclerView rv;
-    private Calendar dateBeg, dateEnd;
+    DateEdit dateEditBeg, dateEditEnd;
 
-    private List<RVAdapter.Acc> accs;
+    private List<AccAdapter.Acc> accs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,54 +49,14 @@ public class AccElActivity extends AppCompatActivity {
         tvDateBeg = (TextView) findViewById(R.id.dateBeg);
         tvDateEnd = (TextView)  findViewById(R.id.dateEnd);
 
+        dateEditBeg = new DateEdit(tvDateBeg);
+        dateEditEnd = new DateEdit(tvDateEnd);
+
         Calendar bDate = Calendar.getInstance();
         bDate.add(Calendar.DAY_OF_YEAR,-14);
-        dateBeg = bDate;
-        dateEnd = new GregorianCalendar(Calendar.getInstance().get(Calendar.YEAR), Calendar.DECEMBER , 31);
-        setLblDate();
 
-        DatePickerDialog.OnDateSetListener dateBegSetListener = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year,
-                                  int monthOfYear, int dayOfMonth) {
-                dateBeg.set(Calendar.YEAR,year);
-                dateBeg.set(Calendar.MONTH,monthOfYear);
-                dateBeg.set(Calendar.DAY_OF_MONTH,dayOfMonth);
-                setLblDate();
-            }
-        };
-
-        DatePickerDialog.OnDateSetListener dateEndSetListener = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year,
-                                  int monthOfYear, int dayOfMonth) {
-                dateEnd.set(Calendar.YEAR,year);
-                dateEnd.set(Calendar.MONTH,monthOfYear);
-                dateEnd.set(Calendar.DAY_OF_MONTH,dayOfMonth);
-                setLblDate();
-            }
-        };
-
-        tvDateBeg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DatePickerDialog datePickerDialog = new DatePickerDialog(AccElActivity.this,
-                        android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
-                        dateBegSetListener, dateBeg.get(Calendar.YEAR), dateBeg.get(Calendar.MONTH), dateBeg.get(Calendar.DAY_OF_MONTH));
-                datePickerDialog.show();
-            }
-        });
-
-        tvDateEnd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DatePickerDialog datePickerDialog = new DatePickerDialog(AccElActivity.this,
-                        android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
-                        dateEndSetListener, dateEnd.get(Calendar.YEAR), dateEnd.get(Calendar.MONTH), dateEnd.get(Calendar.DAY_OF_MONTH));
-                datePickerDialog.show();
-            }
-        });
-
+        dateEditBeg.setDate(bDate);
+        dateEditEnd.setDate(new GregorianCalendar(Calendar.getInstance().get(Calendar.YEAR), Calendar.DECEMBER , 31));
 
         accs = new ArrayList<>();
 
@@ -121,15 +76,10 @@ public class AccElActivity extends AppCompatActivity {
         refresh();
     }
 
-    private void setLblDate(){
-        tvDateBeg.setText(DateFormat.format("dd.MM.yy", dateBeg).toString());
-        tvDateEnd.setText(DateFormat.format("dd.MM.yy", dateEnd).toString());
-    }
-
     private void refresh() {
 
-        String sdBeg=DateFormat.format("yyyy-MM-dd", dateBeg).toString();
-        String sdEnd=DateFormat.format("yyyy-MM-dd", dateEnd).toString();
+        String sdBeg=DateFormat.format("yyyy-MM-dd", dateEditBeg.getDate()).toString();
+        String sdEnd=DateFormat.format("yyyy-MM-dd", dateEditEnd.getDate()).toString();
         String query="prod_nakl?dat=gte.'"+sdBeg+"'&dat=lte.'"+sdEnd+"'&select=id,dat,num,id_ist,prod_nakl_tip(nam,en)&order=dat.desc,num.desc";
 
         HttpReq.onPostExecuteListener getAccListener = new HttpReq.onPostExecuteListener() {
@@ -139,9 +89,9 @@ public class AccElActivity extends AppCompatActivity {
                     Toast.makeText(AccElActivity.this,err, Toast.LENGTH_LONG).show();
                 } else {
                     updList(resp);
-                    RVAdapter.OnStateClickListener stateClickListener = new RVAdapter.OnStateClickListener() {
+                    AccAdapter.OnStateClickListener stateClickListener = new AccAdapter.OnStateClickListener() {
                         @Override
-                        public void onStateClick(RVAdapter.Acc a, int position) {
+                        public void onStateClick(AccAdapter.Acc a, int position) {
                             //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
                             intent.putExtra("id",a.id);
@@ -152,7 +102,7 @@ public class AccElActivity extends AppCompatActivity {
                             startActivity(intent);
                         }
                     };
-                    RVAdapter adapter = new RVAdapter(accs,stateClickListener);
+                    AccAdapter adapter = new AccAdapter(accs,stateClickListener);
                     rv.setAdapter(adapter);
                 }
             }
@@ -187,7 +137,7 @@ public class AccElActivity extends AppCompatActivity {
                 ParsePosition pos = new ParsePosition(0);
                 Date stringDate = simpledateformat.parse(sDate,pos);
                 if (en){
-                    RVAdapter.Acc a = new RVAdapter.Acc(num,type,stringDate,id,id_type);
+                    AccAdapter.Acc a = new AccAdapter.Acc(num,type,stringDate,id,id_type);
                     accs.add(a);
                 }
             } catch (JSONException e) {
@@ -221,10 +171,12 @@ public class AccElActivity extends AppCompatActivity {
                     @Override
                     public void postExecute(String resp, String err) {
                         if (err.isEmpty()){
-                            Toast.makeText(AccElActivity.this,resp, Toast.LENGTH_LONG).show();
-                            if (dat.after(dateEnd)){
-                                dateEnd=dat;
-                                setLblDate();
+                            //Toast.makeText(AccElActivity.this,resp, Toast.LENGTH_LONG).show();
+                            if (dat.after(dateEditEnd.getDate())){
+                                dateEditEnd.setDate(dat);
+                            }
+                            if (dateEditBeg.getDate().after(dat)){
+                                dateEditBeg.setDate(dat);
                             }
                             refresh();
                         } else {
@@ -287,10 +239,10 @@ public class AccElActivity extends AppCompatActivity {
         int pos = item.getGroupId();
         if (pos>=0 && pos<accs.size()){
             switch (item.getItemId()) {
-                case RVAdapter.MENU_ACC_EDT:
+                case AccAdapter.MENU_ACC_EDT:
                     edtAcc(pos);
                     break;
-                case RVAdapter.MENU_ACC_DEL:
+                case AccAdapter.MENU_ACC_DEL:
                     delAcc(pos);
                     break;
             }
@@ -343,11 +295,9 @@ public class AccElActivity extends AppCompatActivity {
         DialogAccNew.acceptListener a = new DialogAccNew.acceptListener() {
             @Override
             public void accept(String num, Calendar dat, int id_type) {
-                //Toast.makeText(getApplicationContext(),"OK: "+num+" "+String.valueOf(id_type), Toast.LENGTH_SHORT).show();
                 HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
                     @Override
                     public void postExecute(String resp, String err) {
-                        //Toast.makeText(getApplicationContext(),resp, Toast.LENGTH_LONG).show();
                         if (err.isEmpty()) {
                             refresh();
                         } else {

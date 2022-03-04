@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.Date;
 import java.util.List;
 
-public class RVAdapter extends RecyclerView.Adapter<RVAdapter.AccViewHolder> {
+public class AccAdapter extends RecyclerView.Adapter<AccAdapter.AccViewHolder> {
 
     public static final int MENU_ACC_EDT = 0;
     public static final int MENU_ACC_DEL = 1;
@@ -42,7 +42,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.AccViewHolder> {
     }
     private final OnStateClickListener onClickListener;
 
-    RVAdapter(List<Acc> acc, OnStateClickListener onClickListener) {
+    AccAdapter(List<Acc> acc, OnStateClickListener onClickListener) {
         this.list = acc;
         this.onClickListener=onClickListener;
     }

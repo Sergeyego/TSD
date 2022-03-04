@@ -18,9 +18,12 @@ public class DialogBarcode extends DialogFragment {
 
     private Button btnCancel;
     private EditText edtBarcode;
+    private String message;
+    private TextView label;
 
-    public DialogBarcode(DialogBarcode.acceptListener aListener) {
+    public DialogBarcode(String mes, DialogBarcode.acceptListener aListener) {
         this.aListener = aListener;
+        this.message=mes;
     }
 
     interface acceptListener {
@@ -37,6 +40,9 @@ public class DialogBarcode extends DialogFragment {
         View v = inflater.inflate(R.layout.dialog_scan, null);
 
         btnCancel = (Button) v.findViewById(R.id.btnBarcodeCancel);
+        label = (TextView) v.findViewById(R.id.lblBarcode);
+
+        label.setText(message);
 
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override

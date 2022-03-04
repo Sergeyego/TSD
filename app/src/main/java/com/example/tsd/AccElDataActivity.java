@@ -41,6 +41,7 @@ public class AccElDataActivity extends AppCompatActivity {
     private String numDoc;
     private Date dateDoc;
     private int id_type;
+    private boolean addFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +57,7 @@ public class AccElDataActivity extends AppCompatActivity {
         SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyy-MM-dd");
         ParsePosition pos = new ParsePosition(0);
         dateDoc = simpledateformat.parse(sdat,pos);
+        addFlag = false;
 
         this.setTitle("№ "+numDoc+" от "+DateFormat.format("dd.MM.yy", dateDoc).toString());
 
@@ -87,7 +89,7 @@ public class AccElDataActivity extends AppCompatActivity {
     private void refresh() {
         
         String id=String.valueOf(id_acc);
-        String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,shtuk,numcont,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip(prefix,nam))&order=id";
+        String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,shtuk,numcont,check,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip(prefix,nam))&order=id";
 
         HttpReq.onPostExecuteListener getAccDataListener = new HttpReq.onPostExecuteListener() {
             @Override
@@ -101,6 +103,10 @@ public class AccElDataActivity extends AppCompatActivity {
                 };
                 AccDataAdapter adapter = new AccDataAdapter(accsd,stateClickListener);
                 rvData.setAdapter(adapter);
+                if (addFlag){
+                    addFlag=false;
+                    newAccDataEl();
+                }
             }
         };
         new HttpReq(getAccDataListener).execute(query);
@@ -126,6 +132,7 @@ public class AccElDataActivity extends AppCompatActivity {
                 int numcont=obj.getInt("numcont");
                 double kvo=obj.getDouble("kvo");
                 int kvom=obj.isNull("shtuk") ? 0 : obj.getInt("shtuk");
+                boolean ok=obj.getBoolean("check");
                 JSONObject objParti = obj.getJSONObject("parti");
                 String npart=objParti.getString("n_s");
                 String datPart=objParti.getString("dat_part");
@@ -150,7 +157,7 @@ public class AccElDataActivity extends AppCompatActivity {
                 String namcont="EUR-"+prefix+cal.get(Calendar.YEAR)+"-"+numNakl+"-"+String.valueOf(numcont);
                 total+=kvo;
 
-                AccDataAdapter.AccData a = new AccDataAdapter.AccData(mnom,part,namcont,numcont,id,id_part,kvo,kvom);
+                AccDataAdapter.AccData a = new AccDataAdapter.AccData(mnom,part,namcont,numcont,id,id_part,kvo,kvom,ok);
                 accsd.add(a);
 
             } catch (JSONException e) {
@@ -167,7 +174,7 @@ public class AccElDataActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_acc, menu);
+        inflater.inflate(R.menu.menu_acc_data, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -175,8 +182,11 @@ public class AccElDataActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         switch(id){
-            case R.id.action_acc_new:
+            case R.id.action_acc_data_new:
                 newAccDataEl();
+                return true;
+            case R.id.action_acc_data_check:
+                checkAccData("Отсканируйте упаковочный лист");
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -186,6 +196,9 @@ public class AccElDataActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_F3){
             newAccDataEl();
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_F4){
+            checkAccData("Отсканируйте упаковочный лист");
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -232,6 +245,7 @@ public class AccElDataActivity extends AppCompatActivity {
             @Override
             public void postExecute(String resp, String err) {
                 if (err.isEmpty()){
+                    addFlag=true;
                     refresh();
                 } else {
                     Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
@@ -303,7 +317,7 @@ public class AccElDataActivity extends AppCompatActivity {
             }
         };
 
-        DialogBarcode dialog = new DialogBarcode(listener);
+        DialogBarcode dialog = new DialogBarcode("Отсканируйте упаковочный лист",listener);
         dialog.show(getSupportFragmentManager(), "dialogElAccBarcode");
     }
 
@@ -360,6 +374,75 @@ public class AccElDataActivity extends AppCompatActivity {
                         }).setNegativeButton("Нет",null);
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    private void setOk(AccDataAdapter.AccData a){
+        Toast.makeText(AccElDataActivity.this,String.valueOf(a.id), Toast.LENGTH_LONG).show();
+    }
+
+    private void scanCont(List<AccDataAdapter.AccData> cont){
+        DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
+            @Override
+            public void accept(String barcode) {
+                boolean ok=false;
+                for (AccDataAdapter.AccData item : cont){
+                    if (barcode.equals(item.namcont)){
+                        ok=true;
+                        setOk(item);
+                        break;
+                    }
+                }
+                if (ok){
+                    Toast.makeText(AccElDataActivity.this,"Отлично!", Toast.LENGTH_LONG).show();
+                    checkAccData("Отсканируйте следующий упаковочный лист");
+                } else {
+                    Toast.makeText(AccElDataActivity.this,"Этикетка не соответствует поддону! Наклейте правильную этикетку!", Toast.LENGTH_LONG).show();
+                    scanCont(cont);
+                }
+            }
+        };
+
+        String nams="";
+
+        for (AccDataAdapter.AccData item : cont){
+            if (!nams.isEmpty()){
+                nams+=" или ";
+            }
+            nams+=item.namcont;
+        }
+
+        DialogBarcode dialog = new DialogBarcode("Наклейте и отсканируйте этикетку поддона: "+nams,listener);
+        dialog.show(getSupportFragmentManager(), "dialogElAccCheckBarcode");
+    }
+
+    private void checkAccData(String mess){
+        DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
+            @Override
+            public void accept(String barcode) {
+                if (barcode.length()==40){
+                    String id_part=barcode.substring(14,21);
+                    id_part=id_part.replace("_","");
+                    int id_p=Integer.parseInt(id_part);
+                    int kvo=Integer.parseInt(barcode.substring(30,36));
+                    List<AccDataAdapter.AccData> namsCont = new ArrayList<>();
+                    for (AccDataAdapter.AccData a : accsd){
+                        if ((int)a.kvo*100==kvo && a.id_part==id_p){
+                            namsCont.add(a);
+                        }
+                    }
+                    if (namsCont.size()>0){
+                        scanCont(namsCont);
+                    } else {
+                        Toast.makeText(AccElDataActivity.this,"Не найдено подходящих этикеток для поддона", Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+
+        DialogBarcode dialog = new DialogBarcode(mess,listener);
+        dialog.show(getSupportFragmentManager(), "dialogElAccCheckBarcode");
     }
 
     @Override
