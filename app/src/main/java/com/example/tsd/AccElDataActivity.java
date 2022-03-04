@@ -5,7 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.format.DateFormat;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,26 +27,37 @@ import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class AccElDataActivity extends AppCompatActivity {
     
-    RecyclerView rvData;
+    private RecyclerView rvData;
     private List<AccDataAdapter.AccData> accsd;
-    Button btnUpdData;
-    int id_acc;
-    TextView lblTotal;
+    private Button btnUpdData;
+    private TextView lblTotal;
+
+    private int id_acc;
+    private String numDoc;
+    private Date dateDoc;
+    private int id_type;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_acc_el_data);
         Bundle arguments = getIntent().getExtras();
-        String num = arguments.get("num").toString();
-        String date = arguments.get("date").toString();
+        numDoc = arguments.get("num").toString();
         String type = arguments.get("type").toString();
         id_acc = arguments.getInt("id");
-        this.setTitle("№ "+num+" от "+date);
+        id_type = arguments.getInt("id_type");
+
+        String sdat = arguments.getString("date");
+        SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyy-MM-dd");
+        ParsePosition pos = new ParsePosition(0);
+        dateDoc = simpledateformat.parse(sdat,pos);
+
+        this.setTitle("№ "+numDoc+" от "+DateFormat.format("dd.MM.yy", dateDoc).toString());
 
         TextView lblType = (TextView) findViewById(R.id.lblElAccType);
         lblType.setText(type);
@@ -58,37 +73,36 @@ public class AccElDataActivity extends AppCompatActivity {
         rvData.setLayoutManager(llm);
         rvData.addItemDecoration(new DividerItemDecoration(this,LinearLayoutManager.VERTICAL));
 
+        registerForContextMenu(rvData);
+
         btnUpdData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                makeGetRequest();
+                refresh();
             }
         });
-        makeGetRequest();
+        refresh();
     }
 
-    private void makeGetRequest() {
+    private void refresh() {
         
         String id=String.valueOf(id_acc);
-        String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,numcont,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip(prefix,nam))&order=id";
+        String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,shtuk,numcont,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip(prefix,nam))&order=id";
 
         HttpReq.onPostExecuteListener getAccDataListener = new HttpReq.onPostExecuteListener() {
             @Override
             public void postExecute(String resp, String err) {
-                //Toast.makeText(getApplicationContext(),"resp: "+server_response, Toast.LENGTH_SHORT).show();
-
                 updList(resp);
                 AccDataAdapter.OnStateClickListener stateClickListener = new AccDataAdapter.OnStateClickListener() {
                     @Override
                     public void onStateClick(AccDataAdapter.AccData a, int position) {
-                        Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
                     }
                 };
                 AccDataAdapter adapter = new AccDataAdapter(accsd,stateClickListener);
                 rvData.setAdapter(adapter);
             }
         };
-
         new HttpReq(getAccDataListener).execute(query);
     }
 
@@ -111,6 +125,7 @@ public class AccElDataActivity extends AppCompatActivity {
                 int id_part=obj.getInt("id_part");
                 int numcont=obj.getInt("numcont");
                 double kvo=obj.getDouble("kvo");
+                int kvom=obj.isNull("shtuk") ? 0 : obj.getInt("shtuk");
                 JSONObject objParti = obj.getJSONObject("parti");
                 String npart=objParti.getString("n_s");
                 String datPart=objParti.getString("dat_part");
@@ -121,7 +136,8 @@ public class AccElDataActivity extends AppCompatActivity {
                 JSONObject objNakl = obj.getJSONObject("prod_nakl");
                 String numNakl=objNakl.getString("num");
                 String datNakl=objNakl.getString("dat");
-                String prefix=objNakl.getJSONObject("prod_nakl_tip").getString("prefix");
+                JSONObject objType=objNakl.getJSONObject("prod_nakl_tip");
+                String prefix=objType.isNull("prefix")? "" : objType.getString("prefix");
                 //String typeNam=objNakl.getJSONObject("prod_nakl_tip").getString("nam");
 
                 SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyy-MM-dd");
@@ -134,7 +150,7 @@ public class AccElDataActivity extends AppCompatActivity {
                 String namcont="EUR-"+prefix+cal.get(Calendar.YEAR)+"-"+numNakl+"-"+String.valueOf(numcont);
                 total+=kvo;
 
-                AccDataAdapter.AccData a = new AccDataAdapter.AccData(mnom,part+"\n"+namcont,namcont,numcont,id,id_part,kvo);
+                AccDataAdapter.AccData a = new AccDataAdapter.AccData(mnom,part,namcont,numcont,id,id_part,kvo,kvom);
                 accsd.add(a);
 
             } catch (JSONException e) {
@@ -175,6 +191,76 @@ public class AccElDataActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+    private void updateAccData(int id, int id_part, double kvo, int kvom, int numcont){
+        HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
+            @Override
+            public void postExecute(String resp, String err) {
+                if (err.isEmpty()){
+                    refresh();
+                } else {
+                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("id_part", id_part);
+            obj.put("kvo",kvo);
+            if (kvom>0){
+                obj.put("shtuk",kvom);
+            }
+            obj.put("numcont",numcont);
+
+            obj.put("id_ist",id_type);
+            obj.put("dat", DateFormat.format("yyyy-MM-dd", dateDoc).toString());
+            obj.put("docs",numDoc);
+            obj.put("id_nakl",id_acc);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        String[] par = new String[3];
+        par[0]="prod?id=eq."+String.valueOf(id);
+        par[1]="PATCH";
+        par[2]= obj.toString();
+        new HttpReq(listener).execute(par);
+    }
+
+    private void insertAccData(int id_part, double kvo, int kvom, int numcont){
+        HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
+            @Override
+            public void postExecute(String resp, String err) {
+                if (err.isEmpty()){
+                    refresh();
+                } else {
+                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("id_part", id_part);
+            obj.put("kvo",kvo);
+            obj.put("shtuk",kvom);
+            obj.put("numcont",numcont);
+
+            obj.put("id_ist",id_type);
+            obj.put("dat", DateFormat.format("yyyy-MM-dd", dateDoc).toString());
+            obj.put("docs",numDoc);
+            obj.put("id_nakl",id_acc);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        String[] par = new String[3];
+        par[0]="prod";
+        par[1]="POST";
+        par[2]= obj.toString();
+        new HttpReq(listener).execute(par);
+    }
+
     private void newAccDataDialog(int id_p, double kvo, int kvom){
         Bundle bundle = new Bundle();
         int n=1;
@@ -190,7 +276,7 @@ public class AccElDataActivity extends AppCompatActivity {
         DialogAccDataNew.acceptListener listener = new DialogAccDataNew.acceptListener() {
             @Override
             public void accept(int id_part, double kvo, int kvom, int numcont) {
-                Toast.makeText(getApplicationContext(),String.valueOf(id_part), Toast.LENGTH_SHORT).show();
+                insertAccData(id_part,kvo,kvom,numcont);
             }
         };
 
@@ -204,7 +290,6 @@ public class AccElDataActivity extends AppCompatActivity {
         DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
             @Override
             public void accept(String barcode) {
-                //Toast.makeText(AccElDataActivity.this,barcode, Toast.LENGTH_SHORT).show();
                 if (barcode.length()==40){
                     String id_part=barcode.substring(14,21);
                     id_part=id_part.replace("_","");
@@ -212,7 +297,6 @@ public class AccElDataActivity extends AppCompatActivity {
                     int kvo=Integer.parseInt(barcode.substring(30,36));
                     int kvop=Integer.parseInt(barcode.substring(36));
                     newAccDataDialog(id_p,kvo/100.0,kvop);
-                    //Toast.makeText(AccElDataActivity.this,id_p+" "+kvo+" "+kvop, Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
                 }
@@ -221,5 +305,76 @@ public class AccElDataActivity extends AppCompatActivity {
 
         DialogBarcode dialog = new DialogBarcode(listener);
         dialog.show(getSupportFragmentManager(), "dialogElAccBarcode");
+    }
+
+    private void edtAccData(int pos){
+
+        AccDataAdapter.AccData data = accsd.get(pos);
+        Bundle bundle = new Bundle();
+        bundle.putInt("idpart",data.id_part);
+        bundle.putDouble("kvo",data.kvo);
+        bundle.putInt("kvom",data.kvom);
+        bundle.putInt("numcont",data.numcont);
+        bundle.putString("querypart","parti?id=eq."+String.valueOf(data.id_part)+"&select=n_s,dat_part,diam,elrtr(marka),el_pack(pack_ed,pack_group),istoch(nam)");
+
+        DialogAccDataNew.acceptListener listener = new DialogAccDataNew.acceptListener() {
+            @Override
+            public void accept(int id_part, double kvo, int kvom, int numcont) {
+                updateAccData(data.id,id_part,kvo,kvom,numcont);
+            }
+        };
+
+        DialogAccDataNew dialog = new DialogAccDataNew(listener);
+        dialog.setArguments(bundle);
+        dialog.show(getSupportFragmentManager(), "dialogElAccDataEdt");
+    }
+
+    private void delAccData(int pos){
+        AlertDialog.Builder builder = new AlertDialog.Builder(AccElDataActivity.this);
+        builder.setTitle("Подтвердите удаление")
+                .setMessage("Удалить "+accsd.get(pos).marka+" "+accsd.get(pos).parti+"?")
+                .setCancelable(false)
+                .setPositiveButton("Да",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+
+                                HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
+                                    @Override
+                                    public void postExecute(String resp, String err) {
+                                        if (err.isEmpty()) {
+                                            refresh();
+                                        } else {
+                                            Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                };
+
+                                String[] par = new String[3];
+                                par[0]="prod?id=eq."+String.valueOf(accsd.get(pos).id);
+                                par[1]="DELETE";
+                                par[2]= "";
+                                new HttpReq(listener).execute(par);
+
+                            }
+                        }).setNegativeButton("Нет",null);
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        int pos = item.getGroupId();
+        if (pos>=0 && pos<accsd.size()){
+            switch (item.getItemId()) {
+                case AccDataAdapter.MENU_ACC_DATA_EDT:
+                    edtAccData(pos);
+                    break;
+                case AccDataAdapter.MENU_ACC_DATA_DEL:
+                    delAccData(pos);
+                    break;
+            }
+        }
+        return super.onContextItemSelected(item);
     }
 }

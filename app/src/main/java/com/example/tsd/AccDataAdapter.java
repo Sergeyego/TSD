@@ -1,5 +1,6 @@
 package com.example.tsd;
 
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,16 +14,20 @@ import java.util.List;
 
 public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewHolder> {
 
+    public static final int MENU_ACC_DATA_EDT = 0;
+    public static final int MENU_ACC_DATA_DEL = 1;
+
     public static class AccData {
         String marka;
         String parti;
         String namcont;
         int numcont;
+        int kvom;
         int id;
         int id_part;
         double kvo;
 
-        AccData(String marka, String parti, String namcont, int numcont, int id, int id_part, double kvo) {
+        AccData(String marka, String parti, String namcont, int numcont, int id, int id_part, double kvo, int kvom) {
             this.marka = marka;
             this.parti = parti;
             this.namcont = namcont;
@@ -30,6 +35,7 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
             this.id = id;
             this.id_part = id_part;
             this.kvo = kvo;
+            this.kvom=kvom;
         }
     }
 
@@ -56,6 +62,7 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
     @Override
     public void onBindViewHolder(@NonNull AccViewHolder holder, int position) {
         AccData a = list.get(holder.getAdapterPosition());
+        holder.nn.setText(String.valueOf(holder.getAdapterPosition()+1)+".");
         holder.marka.setText(a.marka);
         holder.parti.setText("партия №"+a.parti);
         DecimalFormat ourForm = new DecimalFormat("###,##0.00");
@@ -76,8 +83,9 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
         return list.size();
     }
 
-    public static class AccViewHolder extends RecyclerView.ViewHolder {
+    public static class AccViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
         CardView cv;
+        TextView nn;
         TextView marka;
         TextView parti;
         TextView kvo;
@@ -86,10 +94,19 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
         AccViewHolder(View itemView) {
             super(itemView);
             cv = (CardView) itemView.findViewById(R.id.cv_data);
+            nn = (TextView) itemView.findViewById(R.id.acc_data_num);
             marka = (TextView) itemView.findViewById(R.id.acc_data_mark);
             parti = (TextView) itemView.findViewById(R.id.acc_data_part);
             kvo = (TextView) itemView.findViewById(R.id.acc_data_kvo);
             numcont = (TextView) itemView.findViewById(R.id.acc_data_numcont);
+            itemView.setOnCreateContextMenuListener(this);
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
+            contextMenu.setHeaderTitle("Выберите действие");
+            contextMenu.add(this.getAdapterPosition(), MENU_ACC_DATA_EDT, 1, "Редактировать");
+            contextMenu.add(this.getAdapterPosition(), MENU_ACC_DATA_DEL, 2, "Удалить");
         }
     }
 }

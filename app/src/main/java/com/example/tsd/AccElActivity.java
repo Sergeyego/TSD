@@ -148,7 +148,7 @@ public class AccElActivity extends AppCompatActivity {
                             intent.putExtra("id_type",a.id_type);
                             intent.putExtra("num",a.num);
                             intent.putExtra("type",a.type);
-                            intent.putExtra("date",DateFormat.format("dd.MM.yy", a.dat).toString());
+                            intent.putExtra("date",DateFormat.format("yyyy-MM-dd", a.dat).toString());
                             startActivity(intent);
                         }
                     };

@@ -16,9 +16,19 @@
             android:padding="8dp">
 
             <TextView
+                android:id="@+id/acc_data_num"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <TextView
                 android:id="@+id/acc_data_mark"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/acc_data_num"
+                android:layout_marginLeft="10dp"
                 android:text="Уони 13/55 ф 4.0 пачка 4 кг"
                 android:textSize="16sp" />
 

@@ -2,6 +2,7 @@ package com.example.tsd;
 
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -92,8 +93,7 @@ public class DialogAccDataNew extends DialogFragment {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                aListener.accept(id_part,Double.valueOf(edtKvo.getText().toString()),Integer.valueOf(edtKvoM.getText().toString()),Integer.valueOf(edtNumCont.getText().toString()));
-                dismiss();
+                commit();
             }
         });
 
@@ -104,7 +104,31 @@ public class DialogAccDataNew extends DialogFragment {
             }
         });
 
+        View.OnKeyListener keyListener = new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                //Toast.makeText(getContext(),keyEvent.toString(), Toast.LENGTH_SHORT).show();
+                if (keyEvent.getKeyCode()==KeyEvent.KEYCODE_F1){
+                    commit();
+                    return true;
+                } else if (keyEvent.getKeyCode()==KeyEvent.KEYCODE_F2) {
+                    dismiss();
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        edtKvo.setOnKeyListener(keyListener);
+        edtKvoM.setOnKeyListener(keyListener);
+        edtNumCont.setOnKeyListener(keyListener);
+
         return v;
+    }
+
+    private void commit(){
+        aListener.accept(id_part,Double.valueOf(edtKvo.getText().toString()),Integer.valueOf(edtKvoM.getText().toString()),Integer.valueOf(edtNumCont.getText().toString()));
+        dismiss();
     }
 
     void updDataPart(String jsonResp){
