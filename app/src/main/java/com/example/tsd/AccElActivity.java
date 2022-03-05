@@ -65,6 +65,7 @@ public class AccElActivity extends AppCompatActivity {
 
         rv = (RecyclerView) findViewById(R.id.rvList);
         LinearLayoutManager llm = new LinearLayoutManager(this);
+
         rv.setLayoutManager(llm);
         rv.addItemDecoration(new DividerItemDecoration(this,LinearLayoutManager.VERTICAL));
 
