@@ -42,6 +42,7 @@ public class AccElDataActivity extends AppCompatActivity {
     private Date dateDoc;
     private int id_type;
     private boolean addFlag;
+    private boolean checkFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +59,7 @@ public class AccElDataActivity extends AppCompatActivity {
         ParsePosition pos = new ParsePosition(0);
         dateDoc = simpledateformat.parse(sdat,pos);
         addFlag = false;
+        checkFlag = false;
 
         this.setTitle("№ "+numDoc+" от "+DateFormat.format("dd.MM.yy", dateDoc).toString());
 
@@ -106,6 +108,9 @@ public class AccElDataActivity extends AppCompatActivity {
                 if (addFlag){
                     addFlag=false;
                     newAccDataEl();
+                } else if (checkFlag){
+                    checkFlag=false;
+                    checkAccData("Отсканируйте следующий упаковочный лист");
                 }
             }
         };
@@ -377,7 +382,31 @@ public class AccElDataActivity extends AppCompatActivity {
     }
 
     private void setOk(AccDataAdapter.AccData a){
-        Toast.makeText(AccElDataActivity.this,String.valueOf(a.id), Toast.LENGTH_LONG).show();
+
+        HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
+            @Override
+            public void postExecute(String resp, String err) {
+                if (err.isEmpty()){
+                    checkFlag=true;
+                    refresh();
+                } else {
+                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("check", true);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        String[] par = new String[3];
+        par[0]="prod?id=eq."+String.valueOf(a.id);
+        par[1]="PATCH";
+        par[2]= obj.toString();
+        new HttpReq(listener).execute(par);
     }
 
     private void scanCont(List<AccDataAdapter.AccData> cont){
@@ -394,7 +423,7 @@ public class AccElDataActivity extends AppCompatActivity {
                 }
                 if (ok){
                     Toast.makeText(AccElDataActivity.this,"Отлично!", Toast.LENGTH_LONG).show();
-                    checkAccData("Отсканируйте следующий упаковочный лист");
+                    //checkAccData("Отсканируйте следующий упаковочный лист");
                 } else {
                     Toast.makeText(AccElDataActivity.this,"Этикетка не соответствует поддону! Наклейте правильную этикетку!", Toast.LENGTH_LONG).show();
                     scanCont(cont);
@@ -416,6 +445,17 @@ public class AccElDataActivity extends AppCompatActivity {
     }
 
     private void checkAccData(String mess){
+        boolean finish=true;
+        for (AccDataAdapter.AccData a : accsd){
+            if (!a.ok){
+                finish=false;
+                break;
+            }
+        }
+        if (finish){
+            Toast.makeText(AccElDataActivity.this,"Все поддоны промаркированы.", Toast.LENGTH_LONG).show();
+            return;
+        }
         DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
             @Override
             public void accept(String barcode) {

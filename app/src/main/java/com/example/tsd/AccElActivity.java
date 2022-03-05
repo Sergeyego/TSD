@@ -37,6 +37,7 @@ public class AccElActivity extends AppCompatActivity {
     DateEdit dateEditBeg, dateEditEnd;
 
     private List<AccAdapter.Acc> accs;
+    private boolean addFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +45,8 @@ public class AccElActivity extends AppCompatActivity {
         setContentView(R.layout.activity_acc_el);
 
         this.setTitle("Отправить электроды");
+
+        addFlag = false;
 
         btnUpd = (Button) findViewById(R.id.btnUpd);
         tvDateBeg = (TextView) findViewById(R.id.dateBeg);
@@ -104,6 +107,10 @@ public class AccElActivity extends AppCompatActivity {
                     };
                     AccAdapter adapter = new AccAdapter(accs,stateClickListener);
                     rv.setAdapter(adapter);
+                    if (addFlag){
+                        addFlag=false;
+                        newAccEl();
+                    }
                 }
             }
         };
@@ -210,7 +217,8 @@ public class AccElActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_F3){
-            newAccEl();
+            addFlag=true;
+            refresh();
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -228,7 +236,8 @@ public class AccElActivity extends AppCompatActivity {
         int id = item.getItemId();
         switch(id){
             case R.id.action_acc_new:
-                newAccEl();
+                addFlag=true;
+                refresh();
                 return true;
         }
         return super.onOptionsItemSelected(item);

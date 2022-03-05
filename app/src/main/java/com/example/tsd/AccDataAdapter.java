@@ -1,5 +1,6 @@
 package com.example.tsd;
 
+import android.graphics.Color;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -70,6 +71,10 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
         DecimalFormat ourForm = new DecimalFormat("###,##0.00");
         holder.kvo.setText(ourForm.format(a.kvo)+" кг");
         holder.numcont.setText("поддон №"+String.valueOf(a.numcont));
+
+        if (a.ok){
+            holder.cv.setBackgroundColor(Color.rgb(170,255,170));
+        }
 
         holder.itemView.setOnClickListener(new View.OnClickListener(){
             @Override
