@@ -11,6 +11,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewHolder> {
@@ -42,16 +43,30 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
         }
     }
 
-    List<AccData> list;
+    private List<AccData> list;
 
     interface OnStateClickListener{
         void onStateClick(AccData a, int position);
     }
     private final OnStateClickListener onClickListener;
 
-    AccDataAdapter(List<AccData> acc, OnStateClickListener onClickListener) {
-        this.list = acc;
+    AccDataAdapter(OnStateClickListener onClickListener) {
+        this.list = new ArrayList<>();
         this.onClickListener=onClickListener;
+    }
+
+    public void refresh(List<AccData> acc){
+        this.list.clear();
+        this.list.addAll(acc);
+        notifyDataSetChanged();
+    }
+
+    public AccData getItem(int pos){
+        return list.get(pos);
+    }
+
+    public List<AccData> getItemList(){
+        return list;
     }
 
     @NonNull
@@ -74,6 +89,8 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
 
         if (a.ok){
             holder.cv.setBackgroundColor(Color.rgb(170,255,170));
+        } else {
+            holder.cv.setBackgroundColor(Color.rgb(255,255,255));
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener(){

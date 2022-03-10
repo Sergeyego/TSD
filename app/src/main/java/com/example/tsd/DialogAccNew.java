@@ -77,7 +77,12 @@ public class DialogAccNew extends DialogFragment  {
         dateView = (TextView) v.findViewById(R.id.textViewAccDate);
         spinner = (Spinner) v.findViewById(R.id.spinnerAccType);
 
-        dateEdit = new DateEdit(dateView);
+        dateEdit = new DateEdit(dateView, new DateEdit.changedListener() {
+            @Override
+            public void onChanged(Calendar d) {
+
+            }
+        });
 
         Bundle args = getArguments();
         if (args != null) {

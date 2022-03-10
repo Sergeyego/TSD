@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -35,16 +36,26 @@ public class AccAdapter extends RecyclerView.Adapter<AccAdapter.AccViewHolder> {
         }
     }
 
-    List<Acc> list;
+    private List<Acc> list;
 
     interface OnStateClickListener{
         void onStateClick(Acc a, int position);
     }
     private final OnStateClickListener onClickListener;
 
-    AccAdapter(List<Acc> acc, OnStateClickListener onClickListener) {
-        this.list = acc;
+    AccAdapter(OnStateClickListener onClickListener) {
+        this.list = new ArrayList<>();
         this.onClickListener=onClickListener;
+    }
+
+    public void refresh(List<Acc> acc){
+        this.list.clear();
+        this.list.addAll(acc);
+        notifyDataSetChanged();
+    }
+
+    public Acc getItem(int pos){
+        return list.get(pos);
     }
 
     @NonNull

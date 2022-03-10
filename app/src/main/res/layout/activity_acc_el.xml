@@ -11,59 +11,58 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="С"
-                android:textSize="16sp"
-                android:layout_margin="8sp"
-                android:layout_alignBaseline="@id/btnUpd"
-                android:id="@+id/lblBeg"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="С"
+            android:textSize="16sp"
+            android:layout_margin="8sp"
+            android:id="@+id/lblBeg"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="01.01.22"
-                android:textColor="#0000FF"
-                android:textSize="16sp"
-                android:layout_toRightOf="@+id/lblBeg"
-                android:layout_alignBaseline="@id/btnUpd"
-                android:id="@+id/dateBeg"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="01.01.22"
+            android:textColor="#0000FF"
+            android:textSize="16sp"
+            android:layout_margin="8sp"
+            android:layout_toRightOf="@+id/lblBeg"
+            android:id="@+id/dateBeg"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="По"
-                android:textSize="16sp"
-                android:layout_margin="8sp"
-                android:layout_toRightOf="@+id/dateBeg"
-                android:layout_alignBaseline="@id/btnUpd"
-                android:id="@+id/lblEnd"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="По"
+            android:textSize="16sp"
+            android:layout_margin="8sp"
+            android:layout_toRightOf="@+id/dateBeg"
+            android:id="@+id/lblEnd"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="01.01.22"
-                android:textColor="#0000FF"
-                android:textSize="16sp"
-                android:layout_toRightOf="@+id/lblEnd"
-                android:layout_alignBaseline="@id/btnUpd"
-                android:id="@+id/dateEnd"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="01.01.22"
+            android:textColor="#0000FF"
+            android:textSize="16sp"
+            android:layout_margin="8sp"
+            android:layout_toRightOf="@+id/lblEnd"
+            android:id="@+id/dateEnd"/>
 
-            <Button
-                android:text="Обновить"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_margin="6sp"
-                android:textSize="12sp"
-                android:id="@+id/btnUpd"/>
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/swipeRefreshLayoutAccEl"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/dateBeg">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvList"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_marginTop="20dp"/>
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     </RelativeLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/rvList"/>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

@@ -11,8 +11,15 @@ import java.util.Calendar;
 public class DateEdit {
     private TextView label;
     private Calendar date;
-    public DateEdit(TextView v) {
+
+    interface changedListener{
+        void onChanged(Calendar d);
+    }
+    private final DateEdit.changedListener changedListener;
+
+    public DateEdit(TextView v, DateEdit.changedListener changedListener) {
         label=v;
+        this.changedListener = changedListener;
 
         DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -22,6 +29,7 @@ public class DateEdit {
                 date.set(Calendar.MONTH,monthOfYear);
                 date.set(Calendar.DAY_OF_MONTH,dayOfMonth);
                 setLblDate();
+                changedListener.onChanged(date);
             }
         };
 

@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,8 +15,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import org.json.JSONArray;
@@ -30,13 +30,12 @@ import java.util.List;
 
 public class AccElActivity extends AppCompatActivity {
 
-    private Button btnUpd;
     private TextView tvDateBeg;
     private TextView tvDateEnd;
     private RecyclerView rv;
-    DateEdit dateEditBeg, dateEditEnd;
-
-    private List<AccAdapter.Acc> accs;
+    private DateEdit dateEditBeg, dateEditEnd;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private AccAdapter adapter;
     private boolean addFlag;
 
     @Override
@@ -48,35 +47,56 @@ public class AccElActivity extends AppCompatActivity {
 
         addFlag = false;
 
-        btnUpd = (Button) findViewById(R.id.btnUpd);
         tvDateBeg = (TextView) findViewById(R.id.dateBeg);
         tvDateEnd = (TextView)  findViewById(R.id.dateEnd);
 
-        dateEditBeg = new DateEdit(tvDateBeg);
-        dateEditEnd = new DateEdit(tvDateEnd);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayoutAccEl);
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh();
+            }
+        });
+
+        DateEdit.changedListener dateListener = new DateEdit.changedListener() {
+            @Override
+            public void onChanged(Calendar d) {
+                refresh();
+            }
+        };
+
+        dateEditBeg = new DateEdit(tvDateBeg, dateListener);
+        dateEditEnd = new DateEdit(tvDateEnd, dateListener);
 
         Calendar bDate = Calendar.getInstance();
-        bDate.add(Calendar.DAY_OF_YEAR,-14);
+        bDate.add(Calendar.DAY_OF_YEAR,-30);
 
         dateEditBeg.setDate(bDate);
         dateEditEnd.setDate(new GregorianCalendar(Calendar.getInstance().get(Calendar.YEAR), Calendar.DECEMBER , 31));
 
-        accs = new ArrayList<>();
-
         rv = (RecyclerView) findViewById(R.id.rvList);
         LinearLayoutManager llm = new LinearLayoutManager(this);
-
         rv.setLayoutManager(llm);
         rv.addItemDecoration(new DividerItemDecoration(this,LinearLayoutManager.VERTICAL));
-
         registerForContextMenu(rv);
 
-        btnUpd.setOnClickListener(new View.OnClickListener() {
+        AccAdapter.OnStateClickListener stateClickListener = new AccAdapter.OnStateClickListener() {
             @Override
-            public void onClick(View view) {
-                refresh();
+            public void onStateClick(AccAdapter.Acc a, int position) {
+                //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
+                intent.putExtra("id",a.id);
+                intent.putExtra("id_type",a.id_type);
+                intent.putExtra("num",a.num);
+                intent.putExtra("type",a.type);
+                intent.putExtra("date",DateFormat.format("yyyy-MM-dd", a.dat).toString());
+                startActivity(intent);
             }
-        });
+        };
+        adapter = new AccAdapter(stateClickListener);
+        rv.setAdapter(adapter);
+
         refresh();
     }
 
@@ -89,25 +109,11 @@ public class AccElActivity extends AppCompatActivity {
         HttpReq.onPostExecuteListener getAccListener = new HttpReq.onPostExecuteListener() {
             @Override
             public void postExecute(String resp, String err) {
+                swipeRefreshLayout.setRefreshing(false);
                 if (!err.isEmpty()){
                     Toast.makeText(AccElActivity.this,err, Toast.LENGTH_LONG).show();
                 } else {
                     updList(resp);
-                    AccAdapter.OnStateClickListener stateClickListener = new AccAdapter.OnStateClickListener() {
-                        @Override
-                        public void onStateClick(AccAdapter.Acc a, int position) {
-                            //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
-                            intent.putExtra("id",a.id);
-                            intent.putExtra("id_type",a.id_type);
-                            intent.putExtra("num",a.num);
-                            intent.putExtra("type",a.type);
-                            intent.putExtra("date",DateFormat.format("yyyy-MM-dd", a.dat).toString());
-                            startActivity(intent);
-                        }
-                    };
-                    AccAdapter adapter = new AccAdapter(accs,stateClickListener);
-                    rv.setAdapter(adapter);
                     if (addFlag){
                         addFlag=false;
                         newAccEl();
@@ -118,17 +124,17 @@ public class AccElActivity extends AppCompatActivity {
 
         HttpReq getAcc = new HttpReq(getAccListener);
         getAcc.execute(query);
-
     }
 
     private void updList(String jsonResp){
-        accs.clear();
+        List<AccAdapter.Acc> accs = new ArrayList<>();
         JSONArray jsonArray = null;
         try {
             jsonArray = new JSONArray(jsonResp);
         } catch (JSONException e) {
             e.printStackTrace();
             Toast.makeText(AccElActivity.this,e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            adapter.refresh(accs);
             return;
         }
         for (int i=0; i<jsonArray.length();i++){
@@ -151,9 +157,11 @@ public class AccElActivity extends AppCompatActivity {
             } catch (JSONException e) {
                 e.printStackTrace();
                 Toast.makeText(AccElActivity.this,"Не удалось разобрать ответ от сервера", Toast.LENGTH_LONG).show();
+                adapter.refresh(accs);
                 return;
             }
         }
+        adapter.refresh(accs);
     }
 
     private void newAccEl(){
@@ -161,8 +169,8 @@ public class AccElActivity extends AppCompatActivity {
         Calendar date = Calendar.getInstance();
         Bundle bundle = new Bundle();
         int n=0;
-        if (accs.size()>0){
-            String num=accs.get(0).num;
+        if (adapter.getItemCount()>0){
+            String num=adapter.getItem(0).num;
             n = Integer.parseInt(num);
         }
         n++;
@@ -247,7 +255,7 @@ public class AccElActivity extends AppCompatActivity {
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         int pos = item.getGroupId();
-        if (pos>=0 && pos<accs.size()){
+        if (pos>=0 && pos<adapter.getItemCount()){
             switch (item.getItemId()) {
                 case AccAdapter.MENU_ACC_EDT:
                     edtAcc(pos);
@@ -263,7 +271,7 @@ public class AccElActivity extends AppCompatActivity {
     private void delAcc(int pos) {
         AlertDialog.Builder builder = new AlertDialog.Builder(AccElActivity.this);
         builder.setTitle("Подтвердите удаление")
-                .setMessage("Удалить "+accs.get(pos).num+"?")
+                .setMessage("Удалить "+adapter.getItem(pos).num+"?")
                 .setCancelable(false)
                 .setPositiveButton("Да",
                         new DialogInterface.OnClickListener() {
@@ -283,7 +291,7 @@ public class AccElActivity extends AppCompatActivity {
                                 };
 
                                 String[] par = new String[3];
-                                par[0]="prod_nakl?id=eq."+String.valueOf(accs.get(pos).id);
+                                par[0]="prod_nakl?id=eq."+String.valueOf(adapter.getItem(pos).id);
                                 par[1]="DELETE";
                                 par[2]= "";
                                 new HttpReq(listener).execute(par);
@@ -296,10 +304,11 @@ public class AccElActivity extends AppCompatActivity {
 
     private void edtAcc(int pos) {
 
+        AccAdapter.Acc item = adapter.getItem(pos);
         Bundle bundle = new Bundle();
-        bundle.putString("num", accs.get(pos).num);
-        bundle.putString("dat",DateFormat.format("dd.MM.yyyy", accs.get(pos).dat).toString());
-        bundle.putInt("id_type",accs.get(pos).id_type);
+        bundle.putString("num", item.num);
+        bundle.putString("dat",DateFormat.format("dd.MM.yyyy", item.dat).toString());
+        bundle.putInt("id_type",item.id_type);
         bundle.putString("querytype","prod_nakl_tip?en=eq.true&select=id,nam&order=nam");
 
         DialogAccNew.acceptListener a = new DialogAccNew.acceptListener() {
@@ -326,7 +335,7 @@ public class AccElActivity extends AppCompatActivity {
                 }
 
                 String[] par = new String[3];
-                par[0]="prod_nakl?id=eq."+String.valueOf(accs.get(pos).id);
+                par[0]="prod_nakl?id=eq."+String.valueOf(item.id);
                 par[1]="PATCH";
                 par[2]= obj.toString();
                 new HttpReq(listener).execute(par);

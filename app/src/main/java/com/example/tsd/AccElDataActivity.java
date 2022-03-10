@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -14,8 +15,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import org.json.JSONArray;
@@ -33,9 +32,8 @@ import java.util.List;
 public class AccElDataActivity extends AppCompatActivity {
     
     private RecyclerView rvData;
-    private List<AccDataAdapter.AccData> accsd;
-    private Button btnUpdData;
     private TextView lblTotal;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private int id_acc;
     private String numDoc;
@@ -43,6 +41,7 @@ public class AccElDataActivity extends AppCompatActivity {
     private int id_type;
     private boolean addFlag;
     private boolean checkFlag;
+    private AccDataAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,10 +66,14 @@ public class AccElDataActivity extends AppCompatActivity {
         lblType.setText(type);
 
         lblTotal = (TextView) findViewById(R.id.lblElAccItogo);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayoutAccDataEl);
 
-        btnUpdData = (Button) findViewById(R.id.btnUpdAccDataEl);
-        
-        accsd = new ArrayList<>();
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh();
+            }
+        });
 
         rvData = (RecyclerView) findViewById(R.id.rvListAccDataEl);
         LinearLayoutManager llm = new LinearLayoutManager(this);
@@ -79,12 +82,15 @@ public class AccElDataActivity extends AppCompatActivity {
 
         registerForContextMenu(rvData);
 
-        btnUpdData.setOnClickListener(new View.OnClickListener() {
+        AccDataAdapter.OnStateClickListener stateClickListener = new AccDataAdapter.OnStateClickListener() {
             @Override
-            public void onClick(View view) {
-                refresh();
+            public void onStateClick(AccDataAdapter.AccData a, int position) {
+                //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
             }
-        });
+        };
+        adapter = new AccDataAdapter(stateClickListener);
+        rvData.setAdapter(adapter);
+
         refresh();
     }
 
@@ -96,21 +102,18 @@ public class AccElDataActivity extends AppCompatActivity {
         HttpReq.onPostExecuteListener getAccDataListener = new HttpReq.onPostExecuteListener() {
             @Override
             public void postExecute(String resp, String err) {
-                updList(resp);
-                AccDataAdapter.OnStateClickListener stateClickListener = new AccDataAdapter.OnStateClickListener() {
-                    @Override
-                    public void onStateClick(AccDataAdapter.AccData a, int position) {
-                        //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
+                swipeRefreshLayout.setRefreshing(false);
+                if (!err.isEmpty()){
+                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                } else {
+                    updList(resp);
+                    if (addFlag){
+                        addFlag=false;
+                        newAccDataEl();
+                    } else if (checkFlag){
+                        checkFlag=false;
+                        checkAccData("Отсканируйте следующий упаковочный лист");
                     }
-                };
-                AccDataAdapter adapter = new AccDataAdapter(accsd,stateClickListener);
-                rvData.setAdapter(adapter);
-                if (addFlag){
-                    addFlag=false;
-                    newAccDataEl();
-                } else if (checkFlag){
-                    checkFlag=false;
-                    checkAccData("Отсканируйте следующий упаковочный лист");
                 }
             }
         };
@@ -118,7 +121,7 @@ public class AccElDataActivity extends AppCompatActivity {
     }
 
     private void updList(String jsonResp){
-        accsd.clear();
+        List<AccDataAdapter.AccData> accsd = new ArrayList<>();
         double total=0;
         JSONArray jsonArray = null;
         try {
@@ -127,6 +130,7 @@ public class AccElDataActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_SHORT).show();
             lblTotal.setText("");
+            adapter.refresh(accsd);
             return;
         }
         for (int i=0; i<jsonArray.length();i++){
@@ -169,11 +173,13 @@ public class AccElDataActivity extends AppCompatActivity {
                 e.printStackTrace();
                 Toast.makeText(getApplicationContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_SHORT).show();
                 lblTotal.setText("");
+                adapter.refresh(accsd);
                 return;
             }
         }
         DecimalFormat ourForm = new DecimalFormat("###,##0.00");
         lblTotal.setText("Итого: "+ourForm.format(total)+" кг");
+        adapter.refresh(accsd);
     }
 
     @Override
@@ -283,8 +289,8 @@ public class AccElDataActivity extends AppCompatActivity {
     private void newAccDataDialog(int id_p, double kvo, int kvom){
         Bundle bundle = new Bundle();
         int n=1;
-        if (accsd.size()>0){
-            n+=accsd.get(accsd.size()-1).numcont;
+        if (adapter.getItemCount()>0){
+            n+=adapter.getItem(adapter.getItemCount()-1).numcont;
         }
         bundle.putInt("idpart",id_p);
         bundle.putDouble("kvo",kvo);
@@ -328,7 +334,7 @@ public class AccElDataActivity extends AppCompatActivity {
 
     private void edtAccData(int pos){
 
-        AccDataAdapter.AccData data = accsd.get(pos);
+        AccDataAdapter.AccData data = adapter.getItem(pos);
         Bundle bundle = new Bundle();
         bundle.putInt("idpart",data.id_part);
         bundle.putDouble("kvo",data.kvo);
@@ -350,8 +356,9 @@ public class AccElDataActivity extends AppCompatActivity {
 
     private void delAccData(int pos){
         AlertDialog.Builder builder = new AlertDialog.Builder(AccElDataActivity.this);
+        AccDataAdapter.AccData item = adapter.getItem(pos);
         builder.setTitle("Подтвердите удаление")
-                .setMessage("Удалить "+accsd.get(pos).marka+" "+accsd.get(pos).parti+"?")
+                .setMessage("Удалить "+item.marka+" "+item.parti+"?")
                 .setCancelable(false)
                 .setPositiveButton("Да",
                         new DialogInterface.OnClickListener() {
@@ -370,7 +377,7 @@ public class AccElDataActivity extends AppCompatActivity {
                                 };
 
                                 String[] par = new String[3];
-                                par[0]="prod?id=eq."+String.valueOf(accsd.get(pos).id);
+                                par[0]="prod?id=eq."+String.valueOf(item.id);
                                 par[1]="DELETE";
                                 par[2]= "";
                                 new HttpReq(listener).execute(par);
@@ -446,7 +453,7 @@ public class AccElDataActivity extends AppCompatActivity {
 
     private void checkAccData(String mess){
         boolean finish=true;
-        for (AccDataAdapter.AccData a : accsd){
+        for (AccDataAdapter.AccData a : adapter.getItemList()){
             if (!a.ok){
                 finish=false;
                 break;
@@ -465,7 +472,7 @@ public class AccElDataActivity extends AppCompatActivity {
                     int id_p=Integer.parseInt(id_part);
                     int kvo=Integer.parseInt(barcode.substring(30,36));
                     List<AccDataAdapter.AccData> namsCont = new ArrayList<>();
-                    for (AccDataAdapter.AccData a : accsd){
+                    for (AccDataAdapter.AccData a : adapter.getItemList()){
                         if ((int)a.kvo*100==kvo && a.id_part==id_p){
                             namsCont.add(a);
                         }
@@ -488,7 +495,7 @@ public class AccElDataActivity extends AppCompatActivity {
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         int pos = item.getGroupId();
-        if (pos>=0 && pos<accsd.size()){
+        if (pos>=0 && pos<adapter.getItemCount()){
             switch (item.getItemId()) {
                 case AccDataAdapter.MENU_ACC_DATA_EDT:
                     edtAccData(pos);

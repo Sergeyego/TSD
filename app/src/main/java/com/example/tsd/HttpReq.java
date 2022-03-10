@@ -1,8 +1,8 @@
 package com.example.tsd;
 
 import android.os.AsyncTask;
-import android.util.Log;
-import android.widget.Toast;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -51,16 +51,16 @@ public class HttpReq extends AsyncTask<String , Void ,String> {
             int responseCode = urlConnection.getResponseCode();
             if(responseCode == HttpURLConnection.HTTP_OK){
                 server_response = readStream(urlConnection.getInputStream());
-                //Log.v("CatalogClient", server_response);
+            } else {
+                server_error=getErr(readStream(urlConnection.getErrorStream()));
             }
         } catch (MalformedURLException e) {
-            server_error = e.getLocalizedMessage();
+            server_error += e.getLocalizedMessage();
             e.printStackTrace();
         } catch (IOException e) {
-            server_error = e.getLocalizedMessage();
+            server_error += e.getLocalizedMessage();
             e.printStackTrace();
         }
-
         return null;
     }
 
@@ -68,7 +68,26 @@ public class HttpReq extends AsyncTask<String , Void ,String> {
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
         pListener.postExecute(server_response,server_error);
-        //Log.e("Response", "" + server_response);
+    }
+
+    private String getErr(String jsonResp) {
+        String err="";
+        JSONObject obj=null;
+        try {
+            obj = new JSONObject(jsonResp);
+        } catch (JSONException e) {
+            return "";
+        }
+        if (obj.has("message")&& obj.has("hint")){
+            try {
+                String mes=obj.isNull("message")? "" : obj.getString("message");
+                String hint=obj.isNull("hint")? "" : obj.getString("hint");
+                err=mes+" "+hint+" ";
+            } catch (JSONException e) {
+                return "";
+            }
+        }
+        return err;
     }
 
     private String readStream(InputStream in) {
