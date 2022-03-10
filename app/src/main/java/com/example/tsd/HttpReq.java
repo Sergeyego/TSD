@@ -49,10 +49,13 @@ public class HttpReq extends AsyncTask<String , Void ,String> {
             }
 
             int responseCode = urlConnection.getResponseCode();
-            if(responseCode == HttpURLConnection.HTTP_OK){
+            if(/*responseCode == HttpURLConnection.HTTP_OK*/urlConnection.getErrorStream()==null){
                 server_response = readStream(urlConnection.getInputStream());
             } else {
-                server_error=getErr(readStream(urlConnection.getErrorStream()));
+                InputStream es = urlConnection.getErrorStream();
+                if (es!=null){
+                    server_error=getErr(readStream(es));
+                }
             }
         } catch (MalformedURLException e) {
             server_error += e.getLocalizedMessage();
