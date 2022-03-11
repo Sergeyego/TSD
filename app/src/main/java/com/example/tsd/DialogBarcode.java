@@ -35,7 +35,6 @@ public class DialogBarcode extends DialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        getDialog().setTitle("Отсканируйте штрихкод");
         getDialog().setCanceledOnTouchOutside(false);
         View v = inflater.inflate(R.layout.dialog_scan, null);
 

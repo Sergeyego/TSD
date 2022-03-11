@@ -4,15 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".AccElDataActivity">
+    android:orientation="vertical">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/lblElAccType"
+            android:id="@+id/lblAccType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="4sp"
@@ -24,7 +23,7 @@
             android:id="@+id/lblElAccItogo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/lblElAccType"
+            android:layout_below="@+id/lblAccType"
             android:layout_marginStart="4sp"
             android:layout_marginTop="4sp"
             android:layout_marginEnd="4sp"
@@ -37,14 +36,14 @@
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/swipeRefreshLayoutAccDataEl"
+        android:id="@+id/swipeRefreshLayoutAccData"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:id="@+id/rvListAccDataEl"/>
+            android:id="@+id/rvListAccData"/>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

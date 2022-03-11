@@ -37,20 +37,22 @@ public class AccElActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefreshLayout;
     private AccAdapter adapter;
     private boolean addFlag;
+    private int newId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_acc_el);
+        setContentView(R.layout.activity_acc);
 
         this.setTitle("Отправить электроды");
 
         addFlag = false;
+        newId=-1;
 
         tvDateBeg = (TextView) findViewById(R.id.dateBeg);
         tvDateEnd = (TextView)  findViewById(R.id.dateEnd);
 
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayoutAccEl);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayoutAcc);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -84,20 +86,23 @@ public class AccElActivity extends AppCompatActivity {
         AccAdapter.OnStateClickListener stateClickListener = new AccAdapter.OnStateClickListener() {
             @Override
             public void onStateClick(AccAdapter.Acc a, int position) {
-                //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
-                intent.putExtra("id",a.id);
-                intent.putExtra("id_type",a.id_type);
-                intent.putExtra("num",a.num);
-                intent.putExtra("type",a.type);
-                intent.putExtra("date",DateFormat.format("yyyy-MM-dd", a.dat).toString());
-                startActivity(intent);
+                openAccData(a);
             }
         };
         adapter = new AccAdapter(stateClickListener);
         rv.setAdapter(adapter);
 
         refresh();
+    }
+
+    private void openAccData(AccAdapter.Acc a){
+        Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
+        intent.putExtra("id",a.id);
+        intent.putExtra("id_type",a.id_type);
+        intent.putExtra("num",a.num);
+        intent.putExtra("type",a.type);
+        intent.putExtra("date",DateFormat.format("yyyy-MM-dd", a.dat).toString());
+        startActivity(intent);
     }
 
     private void refresh() {
@@ -117,6 +122,14 @@ public class AccElActivity extends AppCompatActivity {
                     if (addFlag){
                         addFlag=false;
                         newAccEl();
+                    } else if (newId>0){
+                        for (AccAdapter.Acc a : adapter.getItemList()){
+                            if (a.id==newId){
+                                openAccData(a);
+                                break;
+                            }
+                        }
+                        newId=-1;
                     }
                 }
             }
@@ -133,7 +146,7 @@ public class AccElActivity extends AppCompatActivity {
             jsonArray = new JSONArray(jsonResp);
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(AccElActivity.this,e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(AccElActivity.this,"Не удалось разобрать ответ от сервера: "+e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             adapter.refresh(accs);
             return;
         }
@@ -156,12 +169,42 @@ public class AccElActivity extends AppCompatActivity {
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
-                Toast.makeText(AccElActivity.this,"Не удалось разобрать ответ от сервера", Toast.LENGTH_LONG).show();
+                Toast.makeText(AccElActivity.this,"Не удалось разобрать ответ от сервера: "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                 adapter.refresh(accs);
                 return;
             }
         }
         adapter.refresh(accs);
+    }
+
+    private int getNewId(String resp){
+        int id=-1;
+        JSONArray arr = null;
+        try {
+            arr = new JSONArray(resp);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        if (arr!=null){
+            if (arr.length()>0){
+                JSONObject obj = null;
+                try {
+                    obj = arr.getJSONObject(0);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if (obj!=null){
+                    if (obj.has("id")){
+                        try {
+                            id=obj.getInt("id");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+        return id;
     }
 
     private void newAccEl(){
@@ -188,6 +231,7 @@ public class AccElActivity extends AppCompatActivity {
                     public void postExecute(String resp, String err) {
                         if (err.isEmpty()){
                             //Toast.makeText(AccElActivity.this,resp, Toast.LENGTH_LONG).show();
+                            newId=getNewId(resp);
                             if (dat.after(dateEditEnd.getDate())){
                                 dateEditEnd.setDate(dat);
                             }

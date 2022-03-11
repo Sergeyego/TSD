@@ -29,7 +29,9 @@ public class DateEdit {
                 date.set(Calendar.MONTH,monthOfYear);
                 date.set(Calendar.DAY_OF_MONTH,dayOfMonth);
                 setLblDate();
-                changedListener.onChanged(date);
+                if (changedListener!=null){
+                    changedListener.onChanged(date);
+                }
             }
         };
 

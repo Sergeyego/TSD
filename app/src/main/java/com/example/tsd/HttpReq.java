@@ -48,15 +48,16 @@ public class HttpReq extends AsyncTask<String , Void ,String> {
                 os.write(input, 0, input.length);
             }
 
-            int responseCode = urlConnection.getResponseCode();
-            if(/*responseCode == HttpURLConnection.HTTP_OK*/urlConnection.getErrorStream()==null){
-                server_response = readStream(urlConnection.getInputStream());
-            } else {
-                InputStream es = urlConnection.getErrorStream();
-                if (es!=null){
-                    server_error=getErr(readStream(es));
-                }
+            InputStream es = urlConnection.getErrorStream();
+            if (es!=null){
+                server_error=getErr(readStream(es));
             }
+
+            InputStream is = urlConnection.getInputStream();
+            if (is!=null){
+                server_response=readStream(is);
+            }
+
         } catch (MalformedURLException e) {
             server_error += e.getLocalizedMessage();
             e.printStackTrace();
@@ -70,7 +71,9 @@ public class HttpReq extends AsyncTask<String , Void ,String> {
     @Override
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
-        pListener.postExecute(server_response,server_error);
+        if (pListener!=null){
+            pListener.postExecute(server_response,server_error);
+        }
     }
 
     private String getErr(String jsonResp) {

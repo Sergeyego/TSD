@@ -58,6 +58,10 @@ public class AccAdapter extends RecyclerView.Adapter<AccAdapter.AccViewHolder> {
         return list.get(pos);
     }
 
+    public List<Acc> getItemList(){
+        return list;
+    }
+
     @NonNull
     @Override
     public AccViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -73,13 +77,15 @@ public class AccAdapter extends RecyclerView.Adapter<AccAdapter.AccViewHolder> {
         holder.dat.setText(DateFormat.format("dd.MM.yy", a.dat).toString());
         holder.type.setText(a.type);
 
-        holder.itemView.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v)
-            {
-                onClickListener.onStateClick(a, holder.getAdapterPosition());
-            }
-        });
+        if (onClickListener!=null) {
+            holder.itemView.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v)
+                {
+                    onClickListener.onStateClick(a, holder.getAdapterPosition());
+                }
+            });
+        }
     }
 
     @Override

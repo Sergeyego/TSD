@@ -46,7 +46,7 @@ public class AccElDataActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_acc_el_data);
+        setContentView(R.layout.activity_acc_data);
         Bundle arguments = getIntent().getExtras();
         numDoc = arguments.get("num").toString();
         String type = arguments.get("type").toString();
@@ -62,11 +62,11 @@ public class AccElDataActivity extends AppCompatActivity {
 
         this.setTitle("№ "+numDoc+" от "+DateFormat.format("dd.MM.yy", dateDoc).toString());
 
-        TextView lblType = (TextView) findViewById(R.id.lblElAccType);
+        TextView lblType = (TextView) findViewById(R.id.lblAccType);
         lblType.setText(type);
 
         lblTotal = (TextView) findViewById(R.id.lblElAccItogo);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayoutAccDataEl);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayoutAccData);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -75,20 +75,14 @@ public class AccElDataActivity extends AppCompatActivity {
             }
         });
 
-        rvData = (RecyclerView) findViewById(R.id.rvListAccDataEl);
+        rvData = (RecyclerView) findViewById(R.id.rvListAccData);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rvData.setLayoutManager(llm);
         rvData.addItemDecoration(new DividerItemDecoration(this,LinearLayoutManager.VERTICAL));
 
         registerForContextMenu(rvData);
 
-        AccDataAdapter.OnStateClickListener stateClickListener = new AccDataAdapter.OnStateClickListener() {
-            @Override
-            public void onStateClick(AccDataAdapter.AccData a, int position) {
-                //Toast.makeText(getApplicationContext(), "Был выбран пункт " + a.id, Toast.LENGTH_SHORT).show();
-            }
-        };
-        adapter = new AccDataAdapter(stateClickListener);
+        adapter = new AccDataAdapter(null);
         rvData.setAdapter(adapter);
 
         refresh();

@@ -93,13 +93,15 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
             holder.cv.setBackgroundColor(Color.rgb(255,255,255));
         }
 
-        holder.itemView.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v)
-            {
-                onClickListener.onStateClick(a, holder.getAdapterPosition());
-            }
-        });
+        if (onClickListener!=null){
+            holder.itemView.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v)
+                {
+                    onClickListener.onStateClick(a, holder.getAdapterPosition());
+                }
+            });
+        }
     }
 
     @Override

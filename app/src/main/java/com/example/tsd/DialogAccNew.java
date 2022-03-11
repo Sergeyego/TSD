@@ -60,7 +60,7 @@ public class DialogAccNew extends DialogFragment  {
     private String queryType;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        getDialog().setTitle("Отправление");
+
         getDialog().setCanceledOnTouchOutside(false);
 
         list = new ArrayList<>();
@@ -77,12 +77,7 @@ public class DialogAccNew extends DialogFragment  {
         dateView = (TextView) v.findViewById(R.id.textViewAccDate);
         spinner = (Spinner) v.findViewById(R.id.spinnerAccType);
 
-        dateEdit = new DateEdit(dateView, new DateEdit.changedListener() {
-            @Override
-            public void onChanged(Calendar d) {
-
-            }
-        });
+        dateEdit = new DateEdit(dateView,null);
 
         Bundle args = getArguments();
         if (args != null) {
@@ -104,7 +99,12 @@ public class DialogAccNew extends DialogFragment  {
         HttpReq.onPostExecuteListener getTypeListener = new HttpReq.onPostExecuteListener() {
             @Override
             public void postExecute(String resp, String err) {
-                updList(resp);
+                if (err.isEmpty()){
+                    updList(resp);
+                } else {
+                    Toast.makeText(getContext(),err, Toast.LENGTH_LONG).show();
+                    dismiss();
+                }
             }
         } ;
         HttpReq reqGetType = new HttpReq(getTypeListener);
