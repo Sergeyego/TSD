@@ -19,21 +19,21 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.ParsePosition;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class DialogAccDataNew extends DialogFragment {
+public class DialogAccDataEdtWire extends DialogFragment {
 
-    public DialogAccDataNew(acceptListener aListener) {
+    public DialogAccDataEdtWire(acceptListener aListener) {
         this.aListener = aListener;
     }
 
     interface acceptListener {
         void accept(int id_part, double kvo, int kvom, int numcont);
     }
-    private final DialogAccDataNew.acceptListener aListener;
+    private final DialogAccDataEdtWire.acceptListener aListener;
 
     private int id_part;
 
@@ -63,7 +63,6 @@ public class DialogAccDataNew extends DialogFragment {
         btnSave = v.findViewById(R.id.btnAccDataNewOk);
         btnCancel = v.findViewById(R.id.btnAccDataNewCancel);
 
-        String queryPart="";
         id_part=-1;
 
 
@@ -73,8 +72,9 @@ public class DialogAccDataNew extends DialogFragment {
             edtKvo.setText(String.format(Locale.ENGLISH,"%.2f",args.getDouble("kvo")));
             edtKvoM.setText(String.valueOf(args.getInt("kvom")));
             edtNumCont.setText(String.valueOf(args.getInt("numcont")));
-            queryPart=args.getString("querypart");
         }
+
+        String queryPart="wire_parti?id=eq."+String.valueOf(id_part)+"&select=wire_parti_m!wire_parti_id_m_fkey(n_s,dat,wire_source!wire_parti_m_id_source_fkey(nam),provol!wire_parti_m_id_provol_fkey(nam),diam!wire_parti_m_id_diam_fkey(diam)),wire_pack_kind(short),wire_pack(pack_ed,pack_group,mas_ed,mas_group)";
 
         HttpReq.onPostExecuteListener getPartListener = new HttpReq.onPostExecuteListener() {
             @Override
@@ -137,27 +137,50 @@ public class DialogAccDataNew extends DialogFragment {
             jsonArray = new JSONArray(jsonResp);
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(getContext(),e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             return;
         }
         for (int i=0; i<jsonArray.length();i++){
             try {
                 JSONObject obj=jsonArray.getJSONObject(i);
-                String numpart=obj.getString("n_s");
-                String datpart=obj.getString("dat_part");
-                double diam=obj.getDouble("diam");
-                String marka=obj.getJSONObject("elrtr").getString("marka");
-                String packEd=obj.getJSONObject("el_pack").getString("pack_ed");
-                String packGroup=obj.getJSONObject("el_pack").getString("pack_group");
-                String src=obj.getJSONObject("istoch").getString("nam");
+                JSONObject objParti = obj.getJSONObject("wire_parti_m");
+                String numpart=objParti.getString("n_s");
+                String datpart=objParti.getString("dat");
+                double diam=objParti.getJSONObject("diam").getDouble("diam");
+                String marka=objParti.getJSONObject("provol").getString("nam");
+                String spool =obj.getJSONObject("wire_pack_kind").getString("short");
+                JSONObject objPack = obj.getJSONObject("wire_pack");
+                String packEd=objPack.getString("pack_ed");
+                String packGroup=objPack.getString("pack_group");
+                double mas_ed=objPack.getDouble("mas_ed");
+                double mas_group=objPack.getDouble("mas_group");
+
+                String src=objParti.getJSONObject("wire_source").getString("nam");
 
                 SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyy-MM-dd");
-                ParsePosition pos = new ParsePosition(0);
-                Date stringDate = simpledateformat.parse(datpart,pos);
+                Date stringDate = new Date();
+                try {
+                    stringDate = simpledateformat.parse(datpart);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
 
-                lblMarka.setText(marka+" ф "+String.format("%.1f",diam));
-                lblPack.setText(packEd+"/"+packGroup);
-                lblPart.setText("п. "+numpart+" от "+ DateFormat.format("dd.MM.yyyy", stringDate).toString()+" ("+src+")");
+                String pack=packEd;
+                if (!packGroup.equals("-")){
+                    pack+="/"+packGroup;
+                }
+
+                lblMarka.setText(marka+" ф "+String.format("%.1f",diam)+" "+spool);
+                lblPack.setText(pack);
+                lblPart.setText("п. "+numpart+" от "+ DateFormat.format("dd.MM.yy", stringDate).toString()+" ("+src+")");
+
+                if (Double.valueOf(edtKvo.getText().toString())==0){
+                    edtKvo.setText(String.format(Locale.ENGLISH,"%.2f",mas_group));
+                    if (mas_ed!=0){
+                        int n = (int) (mas_group/mas_ed);
+                        edtKvoM.setText(String.valueOf(n));
+                    }
+                }
 
             } catch (JSONException e) {
                 e.printStackTrace();

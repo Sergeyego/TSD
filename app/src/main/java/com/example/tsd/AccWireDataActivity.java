@@ -1,12 +1,5 @@
 package com.example.tsd;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -17,6 +10,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,7 +31,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class AccElDataActivity extends AppCompatActivity {
+public class AccWireDataActivity extends AppCompatActivity {
     
     private RecyclerView rvData;
     private TextView lblTotal;
@@ -92,19 +93,19 @@ public class AccElDataActivity extends AppCompatActivity {
     private void refresh() {
         
         String id=String.valueOf(id_acc);
-        String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,shtuk,numcont,check,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip(prefix,nam))&order=id";
+        String query="wire_warehouse?id_waybill=eq."+id+"&select=id,id_wparti,m_netto,pack_kvo,numcont,check,wire_parti(wire_parti_m!wire_parti_id_m_fkey(n_s,dat,provol!wire_parti_m_id_provol_fkey(nam),diam!wire_parti_m_id_diam_fkey(diam)),wire_pack_kind(short),wire_pack(pack_ed,pack_group)),wire_whs_waybill(num,dat,wire_way_bill_type(prefix,nam))&order=id";
 
         HttpReq.onPostExecuteListener getAccDataListener = new HttpReq.onPostExecuteListener() {
             @Override
             public void postExecute(String resp, String err) {
                 swipeRefreshLayout.setRefreshing(false);
                 if (!err.isEmpty()){
-                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                    Toast.makeText(AccWireDataActivity.this,err, Toast.LENGTH_LONG).show();
                 } else {
                     updList(resp);
                     if (addFlag){
                         addFlag=false;
-                        newAccDataEl();
+                        newAccData();
                     } else if (checkFlag){
                         checkFlag=false;
                         checkAccData("Отсканируйте следующий упаковочный лист");
@@ -132,22 +133,23 @@ public class AccElDataActivity extends AppCompatActivity {
             try {
                 JSONObject obj=jsonArray.getJSONObject(i);
                 int id=obj.getInt("id");
-                int id_part=obj.getInt("id_part");
+                int id_part=obj.getInt("id_wparti");
                 int numcont=obj.getInt("numcont");
-                double kvo=obj.getDouble("kvo");
-                int kvom=obj.isNull("shtuk") ? 0 : obj.getInt("shtuk");
+                double kvo=obj.getDouble("m_netto");
+                int kvom=obj.isNull("pack_kvo") ? 0 : obj.getInt("pack_kvo");
                 boolean ok=obj.getBoolean("check");
-                JSONObject objParti = obj.getJSONObject("parti");
+                JSONObject objParti = obj.getJSONObject("wire_parti").getJSONObject("wire_parti_m");
                 String npart=objParti.getString("n_s");
-                String datPart=objParti.getString("dat_part");
-                double diam=objParti.getDouble("diam");
-                String marka=objParti.getJSONObject("elrtr").getString("marka");
-                String packEd=objParti.getJSONObject("el_pack").getString("pack_ed");
-                String pack_group=objParti.getJSONObject("el_pack").getString("pack_group");
-                JSONObject objNakl = obj.getJSONObject("prod_nakl");
+                String datPart=objParti.getString("dat");
+                double diam=objParti.getJSONObject("diam").getDouble("diam");
+                String marka=objParti.getJSONObject("provol").getString("nam");
+                String spool =obj.getJSONObject("wire_parti").getJSONObject("wire_pack_kind").getString("short");
+                String packEd=obj.getJSONObject("wire_parti").getJSONObject("wire_pack").getString("pack_ed");
+                String pack_group=obj.getJSONObject("wire_parti").getJSONObject("wire_pack").getString("pack_group");
+                JSONObject objNakl = obj.getJSONObject("wire_whs_waybill");
                 String numNakl=objNakl.getString("num");
                 String datNakl=objNakl.getString("dat");
-                JSONObject objType=objNakl.getJSONObject("prod_nakl_tip");
+                JSONObject objType=objNakl.getJSONObject("wire_way_bill_type");
                 String prefix=objType.isNull("prefix")? "" : objType.getString("prefix");
                 //String typeNam=objNakl.getJSONObject("prod_nakl_tip").getString("nam");
 
@@ -166,7 +168,12 @@ public class AccElDataActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                String mnom=marka+" ф "+String.valueOf(diam)+"\n("+packEd+"/"+pack_group+")";
+                String pack=packEd;
+                if (!pack_group.equals("-")){
+                    pack+="/"+pack_group;
+                }
+
+                String mnom=marka+" ф "+String.valueOf(diam)+" "+spool+"\n("+pack+")";
                 String part=npart+" от "+DateFormat.format("dd.MM.yy", dPart).toString();
                 String namcont="EUR-"+prefix+cal.get(Calendar.YEAR)+"-"+numNakl+"-"+String.valueOf(numcont);
                 total+=kvo;
@@ -199,7 +206,7 @@ public class AccElDataActivity extends AppCompatActivity {
         int id = item.getItemId();
         switch(id){
             case R.id.action_acc_data_new:
-                newAccDataEl();
+                newAccData();
                 return true;
             case R.id.action_acc_data_check:
                 checkAccData("Отсканируйте упаковочный лист");
@@ -211,7 +218,7 @@ public class AccElDataActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_F3){
-            newAccDataEl();
+            newAccData();
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_F4){
             checkAccData("Отсканируйте упаковочный лист");
@@ -227,30 +234,26 @@ public class AccElDataActivity extends AppCompatActivity {
                 if (err.isEmpty()){
                     refresh();
                 } else {
-                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                    Toast.makeText(AccWireDataActivity.this,err, Toast.LENGTH_LONG).show();
                 }
             }
         };
 
         JSONObject obj = new JSONObject();
         try {
-            obj.put("id_part", id_part);
-            obj.put("kvo",kvo);
+            obj.put("id_wparti", id_part);
+            obj.put("m_netto",kvo);
             if (kvom>0){
-                obj.put("shtuk",kvom);
+                obj.put("pack_kvo",kvom);
             }
             obj.put("numcont",numcont);
-
-            obj.put("id_ist",id_type);
-            obj.put("dat", DateFormat.format("yyyy-MM-dd", dateDoc).toString());
-            obj.put("docs",numDoc);
-            obj.put("id_nakl",id_acc);
+            obj.put("id_waybill",id_acc);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         String[] par = new String[3];
-        par[0]="prod?id=eq."+String.valueOf(id);
+        par[0]="wire_warehouse?id=eq."+String.valueOf(id);
         par[1]="PATCH";
         par[2]= obj.toString();
         new HttpReq(listener).execute(par);
@@ -264,28 +267,24 @@ public class AccElDataActivity extends AppCompatActivity {
                     addFlag=true;
                     refresh();
                 } else {
-                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                    Toast.makeText(AccWireDataActivity.this,err, Toast.LENGTH_LONG).show();
                 }
             }
         };
 
         JSONObject obj = new JSONObject();
         try {
-            obj.put("id_part", id_part);
-            obj.put("kvo",kvo);
-            obj.put("shtuk",kvom);
+            obj.put("id_wparti", id_part);
+            obj.put("m_netto",kvo);
+            obj.put("pack_kvo",kvom);
             obj.put("numcont",numcont);
-
-            obj.put("id_ist",id_type);
-            obj.put("dat", DateFormat.format("yyyy-MM-dd", dateDoc).toString());
-            obj.put("docs",numDoc);
-            obj.put("id_nakl",id_acc);
+            obj.put("id_waybill",id_acc);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         String[] par = new String[3];
-        par[0]="prod";
+        par[0]="wire_warehouse";
         par[1]="POST";
         par[2]= obj.toString();
         new HttpReq(listener).execute(par);
@@ -302,19 +301,19 @@ public class AccElDataActivity extends AppCompatActivity {
         bundle.putInt("kvom",kvom);
         bundle.putInt("numcont",n);
 
-        DialogAccDataEdtEl.acceptListener listener = new DialogAccDataEdtEl.acceptListener() {
+        DialogAccDataEdtWire.acceptListener listener = new DialogAccDataEdtWire.acceptListener() {
             @Override
             public void accept(int id_part, double kvo, int kvom, int numcont) {
                 insertAccData(id_part,kvo,kvom,numcont);
             }
         };
 
-        DialogAccDataEdtEl dialog = new DialogAccDataEdtEl(listener);
+        DialogAccDataEdtWire dialog = new DialogAccDataEdtWire(listener);
         dialog.setArguments(bundle);
-        dialog.show(getSupportFragmentManager(), "dialogElAccDataNew");
+        dialog.show(getSupportFragmentManager(), "dialogWireAccDataNew");
     }
 
-    private void newAccDataEl(){
+    private void newAccData(){
 
         DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
             @Override
@@ -332,13 +331,13 @@ public class AccElDataActivity extends AppCompatActivity {
                     int id_p=Integer.parseInt(id_part);
                     newAccDataDialog(id_p,0,0);
                 } else {
-                    Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
+                    Toast.makeText(AccWireDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
                 }
             }
         };
 
         DialogBarcode dialog = new DialogBarcode("Отсканируйте упаковочный лист",listener);
-        dialog.show(getSupportFragmentManager(), "dialogElAccBarcode");
+        dialog.show(getSupportFragmentManager(), "dialogWireAccBarcode");
     }
 
     private void edtAccData(int pos){
@@ -350,20 +349,20 @@ public class AccElDataActivity extends AppCompatActivity {
         bundle.putInt("kvom",data.kvom);
         bundle.putInt("numcont",data.numcont);
 
-        DialogAccDataEdtEl.acceptListener listener = new DialogAccDataEdtEl.acceptListener() {
+        DialogAccDataEdtWire.acceptListener listener = new DialogAccDataEdtWire.acceptListener() {
             @Override
             public void accept(int id_part, double kvo, int kvom, int numcont) {
                 updateAccData(data.id,id_part,kvo,kvom,numcont);
             }
         };
 
-        DialogAccDataEdtEl dialog = new DialogAccDataEdtEl(listener);
+        DialogAccDataEdtWire dialog = new DialogAccDataEdtWire(listener);
         dialog.setArguments(bundle);
-        dialog.show(getSupportFragmentManager(), "dialogElAccDataEdt");
+        dialog.show(getSupportFragmentManager(), "dialogWireAccDataEdt");
     }
 
     private void delAccData(int pos){
-        AlertDialog.Builder builder = new AlertDialog.Builder(AccElDataActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(AccWireDataActivity.this);
         AccDataAdapter.AccData item = adapter.getItem(pos);
         builder.setTitle("Подтвердите удаление")
                 .setMessage("Удалить "+item.marka+" "+item.parti+"?")
@@ -379,13 +378,13 @@ public class AccElDataActivity extends AppCompatActivity {
                                         if (err.isEmpty()) {
                                             refresh();
                                         } else {
-                                            Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                                            Toast.makeText(AccWireDataActivity.this,err, Toast.LENGTH_LONG).show();
                                         }
                                     }
                                 };
 
                                 String[] par = new String[3];
-                                par[0]="prod?id=eq."+String.valueOf(item.id);
+                                par[0]="wire_warehouse?id=eq."+String.valueOf(item.id);
                                 par[1]="DELETE";
                                 par[2]= "";
                                 new HttpReq(listener).execute(par);
@@ -405,7 +404,7 @@ public class AccElDataActivity extends AppCompatActivity {
                     checkFlag=true;
                     refresh();
                 } else {
-                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                    Toast.makeText(AccWireDataActivity.this,err, Toast.LENGTH_LONG).show();
                 }
             }
         };
@@ -418,7 +417,7 @@ public class AccElDataActivity extends AppCompatActivity {
         }
 
         String[] par = new String[3];
-        par[0]="prod?id=eq."+String.valueOf(a.id);
+        par[0]="wire_warehouse?id=eq."+String.valueOf(a.id);
         par[1]="PATCH";
         par[2]= obj.toString();
         new HttpReq(listener).execute(par);
@@ -437,10 +436,10 @@ public class AccElDataActivity extends AppCompatActivity {
                     }
                 }
                 if (ok){
-                    Toast.makeText(AccElDataActivity.this,"Отлично!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(AccWireDataActivity.this,"Отлично!", Toast.LENGTH_LONG).show();
                     //checkAccData("Отсканируйте следующий упаковочный лист");
                 } else {
-                    Toast.makeText(AccElDataActivity.this,"Этикетка не соответствует поддону! Наклейте правильную этикетку!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(AccWireDataActivity.this,"Этикетка не соответствует поддону! Наклейте правильную этикетку!", Toast.LENGTH_LONG).show();
                     scanCont(cont);
                 }
             }
@@ -456,7 +455,7 @@ public class AccElDataActivity extends AppCompatActivity {
         }
 
         DialogBarcode dialog = new DialogBarcode("Наклейте и отсканируйте этикетку поддона: "+nams,listener);
-        dialog.show(getSupportFragmentManager(), "dialogElAccCheckBarcode");
+        dialog.show(getSupportFragmentManager(), "dialogWireAccCheckBarcode");
     }
 
     private void checkAccData(String mess){
@@ -468,7 +467,7 @@ public class AccElDataActivity extends AppCompatActivity {
             }
         }
         if (finish){
-            Toast.makeText(AccElDataActivity.this,"Все поддоны промаркированы.", Toast.LENGTH_LONG).show();
+            Toast.makeText(AccWireDataActivity.this,"Все поддоны промаркированы.", Toast.LENGTH_LONG).show();
             return;
         }
         DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
@@ -488,16 +487,16 @@ public class AccElDataActivity extends AppCompatActivity {
                     if (namsCont.size()>0){
                         scanCont(namsCont);
                     } else {
-                        Toast.makeText(AccElDataActivity.this,"Не найдено подходящих этикеток для поддона", Toast.LENGTH_LONG).show();
+                        Toast.makeText(AccWireDataActivity.this,"Не найдено подходящих этикеток для поддона", Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
+                    Toast.makeText(AccWireDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
                 }
             }
         };
 
         DialogBarcode dialog = new DialogBarcode(mess,listener);
-        dialog.show(getSupportFragmentManager(), "dialogElAccCheckBarcode");
+        dialog.show(getSupportFragmentManager(), "dialogWireAccCheckBarcode");
     }
 
     @Override

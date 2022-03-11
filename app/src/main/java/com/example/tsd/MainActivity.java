@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,11 +15,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Button btnAccEl = (Button) findViewById(R.id.buttonAccEl);
-
         btnAccEl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 newAccEl();
+            }
+        });
+
+        Button btnAccWire = (Button) findViewById(R.id.buttonAccWire);
+        btnAccWire.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                newAccWire();
             }
         });
     }
@@ -30,13 +36,19 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-
+    private void newAccWire() {
+        Intent intent = new Intent(MainActivity.this, AccWireActivity.class);
+        startActivity(intent);
+    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         //Toast.makeText(getApplicationContext(), "Нажата кнопка "+event.toString(), Toast.LENGTH_SHORT).show();
         if (event.getKeyCode() == KeyEvent.KEYCODE_4){
             newAccEl();
+            return true;
+        } else if (event.getKeyCode() == KeyEvent.KEYCODE_2){
+            newAccWire();
             return true;
         }
         return super.onKeyDown(keyCode, event);

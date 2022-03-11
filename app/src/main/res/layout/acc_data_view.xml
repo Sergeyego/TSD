@@ -13,7 +13,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp">
+            android:padding="6dp">
 
             <TextView
                 android:id="@+id/acc_data_num"
@@ -25,10 +25,11 @@
 
             <TextView
                 android:id="@+id/acc_data_mark"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_toRightOf="@id/acc_data_num"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="5dp"
+                android:layout_toStartOf="@id/acc_data_kvo"
+                android:layout_toEndOf="@id/acc_data_num"
                 android:text="Уони 13/55 ф 4.0 пачка 4 кг"
                 android:textSize="16sp" />
 
@@ -47,8 +48,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/acc_data_mark"
-                android:textSize="16sp"
-                android:text="партия 0123 от 15.02.22" />
+                android:text="партия 0123 от 15.02.22"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/acc_data_numcont"

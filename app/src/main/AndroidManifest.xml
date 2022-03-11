@@ -21,6 +21,12 @@
             android:name=".AccElActivity"
             android:exported="false" />
         <activity
+            android:name=".AccWireActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AccWireDataActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
