@@ -319,18 +319,9 @@ public class AccElDataActivity extends AppCompatActivity {
         DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
             @Override
             public void accept(String barcode) {
-                if (barcode.length()==40){
-                    String id_part=barcode.substring(14,21);
-                    id_part=id_part.replace("_","");
-                    int id_p=Integer.parseInt(id_part);
-                    int kvo=Integer.parseInt(barcode.substring(30,36));
-                    int kvop=Integer.parseInt(barcode.substring(36));
-                    newAccDataDialog(id_p,kvo/100.0,kvop);
-                } else if (barcode.length()==30){
-                    String id_part=barcode.substring(14,21);
-                    id_part=id_part.replace("_","");
-                    int id_p=Integer.parseInt(id_part);
-                    newAccDataDialog(id_p,0,0);
+                BarcodDecoder.Barcod b = BarcodDecoder.decode(barcode);
+                if (b.ok && b.id_part>0){
+                    newAccDataDialog(b.id_part,b.kvo,b.kvom);
                 } else {
                     Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
                 }
@@ -438,7 +429,6 @@ public class AccElDataActivity extends AppCompatActivity {
                 }
                 if (ok){
                     Toast.makeText(AccElDataActivity.this,"Отлично!", Toast.LENGTH_LONG).show();
-                    //checkAccData("Отсканируйте следующий упаковочный лист");
                 } else {
                     Toast.makeText(AccElDataActivity.this,"Этикетка не соответствует поддону! Наклейте правильную этикетку!", Toast.LENGTH_LONG).show();
                     scanCont(cont);
@@ -474,14 +464,11 @@ public class AccElDataActivity extends AppCompatActivity {
         DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
             @Override
             public void accept(String barcode) {
-                if (barcode.length()==40){
-                    String id_part=barcode.substring(14,21);
-                    id_part=id_part.replace("_","");
-                    int id_p=Integer.parseInt(id_part);
-                    int kvo=Integer.parseInt(barcode.substring(30,36));
+                BarcodDecoder.Barcod b = BarcodDecoder.decode(barcode);
+                if (b.ok && b.id_part>0){
                     List<AccDataAdapter.AccData> namsCont = new ArrayList<>();
                     for (AccDataAdapter.AccData a : adapter.getItemList()){
-                        if ((int)a.kvo*100==kvo && a.id_part==id_p){
+                        if (a.id_part==b.id_part && (b.kvo==0 || b.kvo==a.kvo)){
                             namsCont.add(a);
                         }
                     }

@@ -1,6 +1,9 @@
 package com.example.tsd;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.format.DateFormat;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -43,8 +46,10 @@ public class DialogAccDataEdtWire extends DialogFragment {
     private EditText edtKvo;
     private EditText edtKvoM;
     private EditText edtNumCont;
+    private double mas_ed, mas_group;
 
     private Button btnSave, btnCancel;
+
 
     @Nullable
     @Override
@@ -52,6 +57,9 @@ public class DialogAccDataEdtWire extends DialogFragment {
         getDialog().setTitle("Данные поддона");
         getDialog().setCanceledOnTouchOutside(false);
         View v = inflater.inflate(R.layout.dialog_new_acc_data, null);
+
+        mas_ed=0;
+        mas_group=0;
 
         lblMarka = v.findViewById(R.id.lblAccDataNewMarka);
         lblPack = v.findViewById(R.id.lblAccDataNewPack);
@@ -69,7 +77,10 @@ public class DialogAccDataEdtWire extends DialogFragment {
         Bundle args = getArguments();
         if (args != null) {
             id_part=args.getInt("idpart");
-            edtKvo.setText(String.format(Locale.ENGLISH,"%.2f",args.getDouble("kvo")));
+            double kvo=args.getDouble("kvo");
+            if (kvo!=0){
+                edtKvo.setText(String.format(Locale.ENGLISH,"%.2f",kvo));
+            }
             edtKvoM.setText(String.valueOf(args.getInt("kvom")));
             edtNumCont.setText(String.valueOf(args.getInt("numcont")));
         }
@@ -123,11 +134,55 @@ public class DialogAccDataEdtWire extends DialogFragment {
         edtKvoM.setOnKeyListener(keyListener);
         edtNumCont.setOnKeyListener(keyListener);
 
+        edtKvo.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                double d=0;
+                if (mas_ed!=0){
+                    d = getKvo() / mas_ed;
+                    int kvom= (int) d;
+                    edtKvoM.setText(String.valueOf(kvom));
+                }
+                if (d % 1 !=0){
+                    edtKvoM.setTextColor(Color.rgb(255,0,0));
+                } else {
+                    edtKvoM.setTextColor(Color.rgb(0,0,0));
+                }
+            }
+        });
+
         return v;
     }
 
+    private double getKvo() {
+        double kvo=0;
+        String txt=edtKvo.getText().toString();
+        if (!txt.isEmpty()){
+            kvo=Double.valueOf(txt);
+        }
+        return kvo;
+    }
+
+    private int getKvom(){
+        return edtKvoM.getText().toString().isEmpty()? 0 : Integer.valueOf(edtKvoM.getText().toString());
+    }
+
+    private int getNumCont(){
+        return edtNumCont.getText().toString().isEmpty()? 0 : Integer.valueOf(edtNumCont.getText().toString());
+    }
+
     private void commit(){
-        aListener.accept(id_part,Double.valueOf(edtKvo.getText().toString()),Integer.valueOf(edtKvoM.getText().toString()),Integer.valueOf(edtNumCont.getText().toString()));
+        aListener.accept(id_part,getKvo(),getKvom(),getNumCont());
         dismiss();
     }
 
@@ -152,8 +207,8 @@ public class DialogAccDataEdtWire extends DialogFragment {
                 JSONObject objPack = obj.getJSONObject("wire_pack");
                 String packEd=objPack.getString("pack_ed");
                 String packGroup=objPack.getString("pack_group");
-                double mas_ed=objPack.getDouble("mas_ed");
-                double mas_group=objPack.getDouble("mas_group");
+                mas_ed=objPack.getDouble("mas_ed");
+                mas_group=objPack.getDouble("mas_group");
 
                 String src=objParti.getJSONObject("wire_source").getString("nam");
 
@@ -173,14 +228,6 @@ public class DialogAccDataEdtWire extends DialogFragment {
                 lblMarka.setText(marka+" ф "+String.format("%.1f",diam)+" "+spool);
                 lblPack.setText(pack);
                 lblPart.setText("п. "+numpart+" от "+ DateFormat.format("dd.MM.yy", stringDate).toString()+" ("+src+")");
-
-                if (Double.valueOf(edtKvo.getText().toString())==0){
-                    edtKvo.setText(String.format(Locale.ENGLISH,"%.2f",mas_group));
-                    if (mas_ed!=0){
-                        int n = (int) (mas_group/mas_ed);
-                        edtKvoM.setText(String.valueOf(n));
-                    }
-                }
 
             } catch (JSONException e) {
                 e.printStackTrace();

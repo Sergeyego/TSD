@@ -21,28 +21,15 @@
             android:textSize="20sp" />
 
         <Button
-            android:id="@+id/buttonPackWire"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Упаковать(1)"
-            android:layout_centerHorizontal="true"
-            android:layout_below="@id/textViewWire"
-            android:layout_marginTop="20dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            />
-
-        <Button
             android:id="@+id/buttonAccWire"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Отправить на склад(2)"
+            android:layout_below="@id/textViewWire"
             android:layout_centerHorizontal="true"
-            android:layout_below="@id/buttonPackWire"
-            android:layout_marginTop="20dp"
             android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
             android:layout_marginRight="20dp"
-            />
+            android:text="Отправить на склад(F2)" />
 
         <TextView
             android:id="@+id/textViewEl"
@@ -62,24 +49,12 @@
             android:layout_centerVertical="true"/>
 
         <Button
-            android:id="@+id/buttonPackEl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Упаковать(3)"
-            android:layout_centerHorizontal="true"
-            android:layout_below="@id/textViewEl"
-            android:layout_marginTop="20dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            />
-
-        <Button
             android:id="@+id/buttonAccEl"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Отправить на склад(4)"
+            android:text="Отправить на склад(F1)"
             android:layout_centerHorizontal="true"
-            android:layout_below="@id/buttonPackEl"
+            android:layout_below="@id/textViewEl"
             android:layout_marginTop="20dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"

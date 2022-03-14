@@ -43,11 +43,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        //Toast.makeText(getApplicationContext(), "Нажата кнопка "+event.toString(), Toast.LENGTH_SHORT).show();
-        if (event.getKeyCode() == KeyEvent.KEYCODE_4){
+        if (event.getKeyCode() == KeyEvent.KEYCODE_F1){
             newAccEl();
             return true;
-        } else if (event.getKeyCode() == KeyEvent.KEYCODE_2){
+        } else if (event.getKeyCode() == KeyEvent.KEYCODE_F2){
             newAccWire();
             return true;
         }
