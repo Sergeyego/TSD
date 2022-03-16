@@ -98,7 +98,7 @@ public class AccElDataActivity extends AppCompatActivity {
     private void refresh() {
         
         String id=String.valueOf(id_acc);
-        String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,shtuk,numcont,chk,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip(prefix,nam))&order=id";
+        String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,shtuk,numcont,chk,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip!prod_nakl_id_ist_fkey(prefix,nam))&order=id";
 
         HttpReq.onPostExecuteListener getAccDataListener = new HttpReq.onPostExecuteListener() {
             @Override

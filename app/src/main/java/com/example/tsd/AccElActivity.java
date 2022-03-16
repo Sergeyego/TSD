@@ -109,7 +109,7 @@ public class AccElActivity extends AppCompatActivity {
 
         String sdBeg=DateFormat.format("yyyy-MM-dd", dateEditBeg.getDate()).toString();
         String sdEnd=DateFormat.format("yyyy-MM-dd", dateEditEnd.getDate()).toString();
-        String query="prod_nakl?dat=gte.'"+sdBeg+"'&dat=lte.'"+sdEnd+"'&select=id,dat,num,id_ist,prod_nakl_tip(nam,en)&order=dat.desc,num.desc";
+        String query="prod_nakl?dat=gte.'"+sdBeg+"'&dat=lte.'"+sdEnd+"'&select=id,dat,num,id_ist,prod_nakl_tip!prod_nakl_id_ist_fkey(nam,en)&order=dat.desc,num.desc";
 
         HttpReq.onPostExecuteListener getAccListener = new HttpReq.onPostExecuteListener() {
             @Override
