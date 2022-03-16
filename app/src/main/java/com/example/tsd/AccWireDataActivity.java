@@ -93,7 +93,7 @@ public class AccWireDataActivity extends AppCompatActivity {
     private void refresh() {
         
         String id=String.valueOf(id_acc);
-        String query="wire_warehouse?id_waybill=eq."+id+"&select=id,id_wparti,m_netto,pack_kvo,numcont,check,wire_parti(wire_parti_m!wire_parti_id_m_fkey(n_s,dat,provol!wire_parti_m_id_provol_fkey(nam),diam!wire_parti_m_id_diam_fkey(diam)),wire_pack_kind(short),wire_pack(pack_ed,pack_group)),wire_whs_waybill(num,dat,wire_way_bill_type(prefix,nam))&order=id";
+        String query="wire_warehouse?id_waybill=eq."+id+"&select=id,id_wparti,m_netto,pack_kvo,numcont,chk,wire_parti(wire_parti_m!wire_parti_id_m_fkey(n_s,dat,provol!wire_parti_m_id_provol_fkey(nam),diam!wire_parti_m_id_diam_fkey(diam)),wire_pack_kind(short),wire_pack(pack_ed,pack_group)),wire_whs_waybill(num,dat,wire_way_bill_type(prefix,nam))&order=id";
 
         HttpReq.onPostExecuteListener getAccDataListener = new HttpReq.onPostExecuteListener() {
             @Override
@@ -137,7 +137,7 @@ public class AccWireDataActivity extends AppCompatActivity {
                 int numcont=obj.getInt("numcont");
                 double kvo=obj.getDouble("m_netto");
                 int kvom=obj.isNull("pack_kvo") ? 0 : obj.getInt("pack_kvo");
-                boolean ok=obj.getBoolean("check");
+                boolean ok=obj.getBoolean("chk");
                 JSONObject objParti = obj.getJSONObject("wire_parti").getJSONObject("wire_parti_m");
                 String npart=objParti.getString("n_s");
                 String datPart=objParti.getString("dat");
@@ -402,7 +402,7 @@ public class AccWireDataActivity extends AppCompatActivity {
 
         JSONObject obj = new JSONObject();
         try {
-            obj.put("check", true);
+            obj.put("chk", true);
         } catch (JSONException e) {
             e.printStackTrace();
         }

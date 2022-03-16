@@ -1,6 +1,7 @@
 package com.example.tsd;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -9,6 +10,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.KeyEvent;
@@ -17,6 +19,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -92,7 +98,7 @@ public class AccElDataActivity extends AppCompatActivity {
     private void refresh() {
         
         String id=String.valueOf(id_acc);
-        String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,shtuk,numcont,check,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip(prefix,nam))&order=id";
+        String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,shtuk,numcont,chk,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip(prefix,nam))&order=id";
 
         HttpReq.onPostExecuteListener getAccDataListener = new HttpReq.onPostExecuteListener() {
             @Override
@@ -136,7 +142,7 @@ public class AccElDataActivity extends AppCompatActivity {
                 int numcont=obj.getInt("numcont");
                 double kvo=obj.getDouble("kvo");
                 int kvom=obj.isNull("shtuk") ? 0 : obj.getInt("shtuk");
-                boolean ok=obj.getBoolean("check");
+                boolean ok=obj.getBoolean("chk");
                 JSONObject objParti = obj.getJSONObject("parti");
                 String npart=objParti.getString("n_s");
                 String datPart=objParti.getString("dat_part");
@@ -403,7 +409,7 @@ public class AccElDataActivity extends AppCompatActivity {
 
         JSONObject obj = new JSONObject();
         try {
-            obj.put("check", true);
+            obj.put("chk", true);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -501,5 +507,24 @@ public class AccElDataActivity extends AppCompatActivity {
             }
         }
         return super.onContextItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        IntentResult intentResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        // if the intentResult is null then
+        // toast a message as "cancelled"
+        if (intentResult != null) {
+            if (intentResult.getContents() == null) {
+                Toast.makeText(getBaseContext(), "Cancelled", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getBaseContext(), intentResult.getContents()+"\n"+intentResult.getFormatName(), Toast.LENGTH_SHORT).show();
+                // if the intentResult is not null we'll set
+                // the content and format of scan message
+                //messageText.setText(intentResult.getContents());
+                //messageFormat.setText(intentResult.getFormatName());
+            }
+        }
     }
 }

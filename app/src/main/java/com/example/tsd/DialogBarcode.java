@@ -8,11 +8,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 public class DialogBarcode extends DialogFragment {
 
@@ -47,6 +49,11 @@ public class DialogBarcode extends DialogFragment {
             @Override
             public void onClick(View view) {
                 dismiss();
+                /*IntentIntegrator intentIntegrator = IntentIntegrator.forSupportFragment(DialogBarcode.this);
+                intentIntegrator.setPrompt("Scan a barcode or QR Code");
+                intentIntegrator.setOrientationLocked(true);
+                intentIntegrator.initiateScan();*/
+
             }
         });
 
@@ -77,4 +84,5 @@ public class DialogBarcode extends DialogFragment {
 
         return v;
     }
+
 }
