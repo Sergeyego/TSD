@@ -34,15 +34,17 @@ public class DialogAccDataEdtEl extends DialogFragment {
     }
 
     interface acceptListener {
-        void accept(int id_part, double kvo, int kvom, int numcont);
+        void accept(int id_part, double kvo, int kvom, int numcont, String barcodecont);
     }
     private final DialogAccDataEdtEl.acceptListener aListener;
 
     private int id_part;
+    private String barcodecont;
 
     private TextView lblMarka;
     private TextView lblPack;
     private TextView lblPart;
+    private TextView lblBarcodeCont;
     private EditText edtKvo;
     private EditText edtKvoM;
     private EditText edtNumCont;
@@ -63,6 +65,7 @@ public class DialogAccDataEdtEl extends DialogFragment {
         lblMarka = v.findViewById(R.id.lblAccDataNewMarka);
         lblPack = v.findViewById(R.id.lblAccDataNewPack);
         lblPart = v.findViewById(R.id.lblAccDataNewPart);
+        lblBarcodeCont = v.findViewById(R.id.lblAccNewBarcodeCont);
         edtKvo = v.findViewById(R.id.editTextAccNewKvo);
         edtKvoM = v.findViewById(R.id.editTextAccNewKvoM);
         edtNumCont = v.findViewById(R.id.editTextAccNewNumPal);
@@ -77,11 +80,13 @@ public class DialogAccDataEdtEl extends DialogFragment {
         if (args != null) {
             id_part=args.getInt("idpart");
             double kvo=args.getDouble("kvo");
+            barcodecont = args.getString("barcodecont");
             if (kvo!=0){
                 edtKvo.setText(String.format(Locale.ENGLISH,"%.2f",kvo));
             }
             edtKvoM.setText(String.valueOf(args.getInt("kvom")));
             edtNumCont.setText(String.valueOf(args.getInt("numcont")));
+            lblBarcodeCont.setText(barcodecont);
         }
 
         String queryPart="parti?id=eq."+String.valueOf(id_part)+"&select=n_s,dat_part,diam,elrtr(marka),el_pack(pack_ed,pack_group,mass_ed,mass_group),istoch(nam)";
@@ -181,7 +186,7 @@ public class DialogAccDataEdtEl extends DialogFragment {
     }
 
     private void commit(){
-        aListener.accept(id_part,getKvo(),getKvom(),getNumCont());
+        aListener.accept(id_part,getKvo(),getKvom(),getNumCont(),barcodecont);
         dismiss();
     }
 

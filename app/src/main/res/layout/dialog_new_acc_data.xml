@@ -106,14 +106,25 @@
             android:layout_marginRight="20dp"
             android:layout_toRightOf="@id/lblAccNewNumPal"
             android:imeOptions="actionDone"
-            android:singleLine="true"
-            android:inputType="number"/>
+            android:inputType="number"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/lblAccNewBarcodeCont"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblAccNewNumPal"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Штрихкод поддона"
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/btnAccDataNewOk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/lblAccNewNumPal"
+            android:layout_below="@id/lblAccNewBarcodeCont"
             android:layout_alignParentLeft="true"
             android:layout_marginLeft="10dp"
             android:layout_marginTop="40dp"

@@ -5,13 +5,14 @@ public class BarcodDecoder {
         String numPart;
         String type;
         String ean;
+        String barcodeCont;
         int id_part;
         int kvom;
         double kvo;
         int yearPart;
         boolean ok;
 
-        Barcod(boolean ok, int id_part, double kvo, int kvom, String type, String numPart, int yearPart, String ean) {
+        Barcod(boolean ok, int id_part, double kvo, int kvom, String type, String numPart, int yearPart, String ean, String barcodeCont) {
             this.ok = ok;
             this.id_part=id_part;
             this.kvo=kvo;
@@ -20,6 +21,7 @@ public class BarcodDecoder {
             this.numPart = numPart;
             this.yearPart=yearPart;
             this.ean = ean;
+            this.barcodeCont = barcodeCont;
         }
     }
 
@@ -27,14 +29,15 @@ public class BarcodDecoder {
         String numPart="";
         String type="";
         String ean="";
+        String barcodeCont="";
         int id_part=-1;
         int kvom=0;
         double kvo=0;
         int yearPart=-1;
-        boolean ok=str.length()==13 || str.length()==30 || str.length()==40;
+        boolean ok=str.length()==13 || str.length()==30 || str.length()==40|| str.length()==50;
         if (ok) {
             ean = str.substring(0, 13);
-            if (str.length() == 30 || str.length() == 40) {
+            if (str.length() == 30 || str.length() == 40 || str.length() == 50) {
 
                 type = str.substring(13, 14);
 
@@ -51,8 +54,12 @@ public class BarcodDecoder {
                     kvom = Integer.parseInt(str.substring(36));
                 }
 
+                if (str.length() == 50) {
+                    barcodeCont=str.substring(40);
+                }
+
             }
         }
-        return new Barcod(ok,id_part,kvo,kvom,type,numPart,yearPart,ean);
+        return new Barcod(ok,id_part,kvo,kvom,type,numPart,yearPart,ean,barcodeCont);
     };
 }

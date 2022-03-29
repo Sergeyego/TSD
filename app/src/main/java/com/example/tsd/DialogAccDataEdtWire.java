@@ -83,6 +83,7 @@ public class DialogAccDataEdtWire extends DialogFragment {
             }
             edtKvoM.setText(String.valueOf(args.getInt("kvom")));
             edtNumCont.setText(String.valueOf(args.getInt("numcont")));
+
         }
 
         String queryPart="wire_parti?id=eq."+String.valueOf(id_part)+"&select=wire_parti_m!wire_parti_id_m_fkey(n_s,dat,wire_source!wire_parti_m_id_source_fkey(nam),provol!wire_parti_m_id_provol_fkey(nam),diam!wire_parti_m_id_diam_fkey(diam)),wire_pack_kind(short),wire_pack(pack_ed,pack_group,mas_ed,mas_group)";
