@@ -49,9 +49,9 @@ public class BarcodDecoder {
 
                 yearPart = Integer.parseInt(str.substring(26, 30));
 
-                if (str.length() == 40) {
+                if (str.length() == 40 || str.length() == 50) {
                     kvo = Integer.parseInt(str.substring(30, 36)) / 100.0;
-                    kvom = Integer.parseInt(str.substring(36));
+                    kvom = Integer.parseInt(str.substring(36,40));
                 }
 
                 if (str.length() == 50) {

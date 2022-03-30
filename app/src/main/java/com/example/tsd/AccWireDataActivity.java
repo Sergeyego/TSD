@@ -93,7 +93,7 @@ public class AccWireDataActivity extends AppCompatActivity {
     private void refresh() {
         
         String id=String.valueOf(id_acc);
-        String query="wire_warehouse?id_waybill=eq."+id+"&select=id,id_wparti,m_netto,pack_kvo,numcont,chk,wire_parti(wire_parti_m!wire_parti_id_m_fkey(n_s,dat,provol!wire_parti_m_id_provol_fkey(nam),diam!wire_parti_m_id_diam_fkey(diam)),wire_pack_kind(short),wire_pack(pack_ed,pack_group)),wire_whs_waybill(num,dat,wire_way_bill_type(prefix,nam))&order=id";
+        String query="wire_warehouse?id_waybill=eq."+id+"&select=id,id_wparti,m_netto,pack_kvo,numcont,barcodecont,chk,wire_parti(wire_parti_m!wire_parti_id_m_fkey(n_s,dat,provol!wire_parti_m_id_provol_fkey(nam),diam!wire_parti_m_id_diam_fkey(diam)),wire_pack_kind(short),wire_pack(pack_ed,pack_group)),wire_whs_waybill(num,dat,wire_way_bill_type(prefix,nam))&order=id";
 
         HttpReq.onPostExecuteListener getAccDataListener = new HttpReq.onPostExecuteListener() {
             @Override
@@ -151,6 +151,7 @@ public class AccWireDataActivity extends AppCompatActivity {
                 String datNakl=objNakl.getString("dat");
                 JSONObject objType=objNakl.getJSONObject("wire_way_bill_type");
                 String prefix=objType.isNull("prefix")? "" : objType.getString("prefix");
+                String barcodecont=obj.isNull("barcodecont") ? "" : obj.getString("barcodecont");
                 //String typeNam=objNakl.getJSONObject("prod_nakl_tip").getString("nam");
 
                 SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyy-MM-dd");
@@ -175,7 +176,7 @@ public class AccWireDataActivity extends AppCompatActivity {
 
                 String mnom=marka+" ф "+String.valueOf(diam)+" "+spool+"\n("+pack+")";
                 String part=npart+" от "+DateFormat.format("dd.MM.yy", dPart).toString();
-                String namcont="EUR-"+prefix+cal.get(Calendar.YEAR)+"-"+numNakl+"-"+String.valueOf(numcont);
+                String namcont= barcodecont.isEmpty() ? ("EUR-"+prefix+cal.get(Calendar.YEAR)+"-"+numNakl+"-"+String.valueOf(numcont)) : barcodecont;
                 total+=kvo;
 
                 AccDataAdapter.AccData a = new AccDataAdapter.AccData(mnom,part,namcont,numcont,id,id_part,kvo,kvom,ok);
@@ -259,7 +260,7 @@ public class AccWireDataActivity extends AppCompatActivity {
         new HttpReq(listener).execute(par);
     }
 
-    private void insertAccData(int id_part, double kvo, int kvom, int numcont){
+    private void insertAccData(int id_part, double kvo, int kvom, int numcont, String barcodecont){
         HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
             @Override
             public void postExecute(String resp, String err) {
@@ -279,6 +280,8 @@ public class AccWireDataActivity extends AppCompatActivity {
             obj.put("pack_kvo",kvom);
             obj.put("numcont",numcont);
             obj.put("id_waybill",id_acc);
+            obj.put("barcodecont",barcodecont);
+            obj.put("chk",!barcodecont.isEmpty());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -290,7 +293,7 @@ public class AccWireDataActivity extends AppCompatActivity {
         new HttpReq(listener).execute(par);
     }
 
-    private void newAccDataDialog(int id_p, double kvo, int kvom){
+    private void newAccDataDialog(int id_p, double kvo, int kvom, String barcodecont){
         Bundle bundle = new Bundle();
         int n=1;
         if (adapter.getItemCount()>0){
@@ -300,11 +303,12 @@ public class AccWireDataActivity extends AppCompatActivity {
         bundle.putDouble("kvo",kvo);
         bundle.putInt("kvom",kvom);
         bundle.putInt("numcont",n);
+        bundle.putString("barcodecont",barcodecont);
 
         DialogAccDataEdtWire.acceptListener listener = new DialogAccDataEdtWire.acceptListener() {
             @Override
-            public void accept(int id_part, double kvo, int kvom, int numcont) {
-                insertAccData(id_part,kvo,kvom,numcont);
+            public void accept(int id_part, double kvo, int kvom, int numcont, String barcodecont) {
+                insertAccData(id_part,kvo,kvom,numcont,barcodecont);
             }
         };
 
@@ -319,8 +323,8 @@ public class AccWireDataActivity extends AppCompatActivity {
             @Override
             public void accept(String barcode) {
                 BarcodDecoder.Barcod b=BarcodDecoder.decode(barcode);
-                if (b.ok && b.id_part>0){
-                    newAccDataDialog(b.id_part,b.kvo,b.kvom);
+                if (b.ok && b.id_part>0 && b.type.equals("w")){
+                    newAccDataDialog(b.id_part,b.kvo,b.kvom,b.barcodeCont);
                 } else {
                     Toast.makeText(AccWireDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
                 }
@@ -339,10 +343,11 @@ public class AccWireDataActivity extends AppCompatActivity {
         bundle.putDouble("kvo",data.kvo);
         bundle.putInt("kvom",data.kvom);
         bundle.putInt("numcont",data.numcont);
+        bundle.putString("barcodecont",data.namcont);
 
         DialogAccDataEdtWire.acceptListener listener = new DialogAccDataEdtWire.acceptListener() {
             @Override
-            public void accept(int id_part, double kvo, int kvom, int numcont) {
+            public void accept(int id_part, double kvo, int kvom, int numcont, String barcodecont) {
                 updateAccData(data.id,id_part,kvo,kvom,numcont);
             }
         };

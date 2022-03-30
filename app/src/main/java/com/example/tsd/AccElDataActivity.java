@@ -283,6 +283,7 @@ public class AccElDataActivity extends AppCompatActivity {
             obj.put("shtuk",kvom);
             obj.put("numcont",numcont);
             obj.put("barcodecont",barcodecont);
+            obj.put("chk",!barcodecont.isEmpty());
 
             obj.put("id_ist",id_type);
             obj.put("dat", DateFormat.format("yyyy-MM-dd", dateDoc).toString());
@@ -329,7 +330,7 @@ public class AccElDataActivity extends AppCompatActivity {
             @Override
             public void accept(String barcode) {
                 BarcodDecoder.Barcod b = BarcodDecoder.decode(barcode);
-                if (b.ok && b.id_part>0){
+                if (b.ok && b.id_part>0 && b.type.equals("e")){
                     newAccDataDialog(b.id_part,b.kvo,b.kvom,b.barcodeCont);
                 } else {
                     Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();

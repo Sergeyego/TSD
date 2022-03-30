@@ -34,15 +34,17 @@ public class DialogAccDataEdtWire extends DialogFragment {
     }
 
     interface acceptListener {
-        void accept(int id_part, double kvo, int kvom, int numcont);
+        void accept(int id_part, double kvo, int kvom, int numcont, String barcodecont);
     }
     private final DialogAccDataEdtWire.acceptListener aListener;
 
     private int id_part;
+    private String barcodecont;
 
     private TextView lblMarka;
     private TextView lblPack;
     private TextView lblPart;
+    private TextView lblBarcodeCont;
     private EditText edtKvo;
     private EditText edtKvoM;
     private EditText edtNumCont;
@@ -64,6 +66,7 @@ public class DialogAccDataEdtWire extends DialogFragment {
         lblMarka = v.findViewById(R.id.lblAccDataNewMarka);
         lblPack = v.findViewById(R.id.lblAccDataNewPack);
         lblPart = v.findViewById(R.id.lblAccDataNewPart);
+        lblBarcodeCont = v.findViewById(R.id.lblAccNewBarcodeCont);
         edtKvo = v.findViewById(R.id.editTextAccNewKvo);
         edtKvoM = v.findViewById(R.id.editTextAccNewKvoM);
         edtNumCont = v.findViewById(R.id.editTextAccNewNumPal);
@@ -78,12 +81,13 @@ public class DialogAccDataEdtWire extends DialogFragment {
         if (args != null) {
             id_part=args.getInt("idpart");
             double kvo=args.getDouble("kvo");
+            barcodecont = args.getString("barcodecont");
             if (kvo!=0){
                 edtKvo.setText(String.format(Locale.ENGLISH,"%.2f",kvo));
             }
             edtKvoM.setText(String.valueOf(args.getInt("kvom")));
             edtNumCont.setText(String.valueOf(args.getInt("numcont")));
-
+            lblBarcodeCont.setText(barcodecont);
         }
 
         String queryPart="wire_parti?id=eq."+String.valueOf(id_part)+"&select=wire_parti_m!wire_parti_id_m_fkey(n_s,dat,wire_source!wire_parti_m_id_source_fkey(nam),provol!wire_parti_m_id_provol_fkey(nam),diam!wire_parti_m_id_diam_fkey(diam)),wire_pack_kind(short),wire_pack(pack_ed,pack_group,mas_ed,mas_group)";
@@ -183,7 +187,7 @@ public class DialogAccDataEdtWire extends DialogFragment {
     }
 
     private void commit(){
-        aListener.accept(id_part,getKvo(),getKvom(),getNumCont());
+        aListener.accept(id_part,getKvo(),getKvom(),getNumCont(),barcodecont);
         dismiss();
     }
 
