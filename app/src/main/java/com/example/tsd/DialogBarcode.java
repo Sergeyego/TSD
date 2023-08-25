@@ -1,70 +1,74 @@
 package com.example.tsd;
 
+import android.content.Intent;
 import android.os.Bundle;
+
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.appcompat.app.AppCompatActivity;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
 
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
-
-public class DialogBarcode extends DialogFragment {
+public class DialogBarcode extends AppCompatActivity {
 
     private Button btnCancel;
+    private Button btnCamera;
     private EditText edtBarcode;
     private String message;
     private TextView label;
 
-    public DialogBarcode(String mes, DialogBarcode.acceptListener aListener) {
-        this.aListener = aListener;
-        this.message=mes;
-    }
+    private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(),
+            result -> {
+                if(result.getContents() != null) {
+                    edtBarcode.setText(result.getContents());
+                    accept();
+                }
+            });
 
-    interface acceptListener {
-        void accept(String barcode);
-    }
-    private final DialogBarcode.acceptListener aListener;
-
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.dialog_scan);
 
-        getDialog().setCanceledOnTouchOutside(false);
-        View v = inflater.inflate(R.layout.dialog_scan, null);
+        Bundle arguments = getIntent().getExtras();
+        message = arguments.get("title").toString();
 
-        btnCancel = (Button) v.findViewById(R.id.btnBarcodeCancel);
-        label = (TextView) v.findViewById(R.id.lblBarcode);
+        btnCancel = (Button) findViewById(R.id.btnBarcodeCancel);
+        btnCamera = (Button) findViewById(R.id.btnBarcodeCam);
+        label = (TextView) findViewById(R.id.lblBarcode);
 
         label.setText(message);
 
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dismiss();
-                /*IntentIntegrator intentIntegrator = IntentIntegrator.forSupportFragment(DialogBarcode.this);
-                intentIntegrator.setPrompt("Scan a barcode or QR Code");
-                intentIntegrator.setOrientationLocked(true);
-                intentIntegrator.initiateScan();*/
-
+                finish();
             }
         });
 
-        edtBarcode = (EditText) v.findViewById(R.id.editTextBarcode);
+        btnCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ScanOptions options = new ScanOptions();
+                options.setCaptureActivity(CaptureActivityPortrait.class);
+                options.setOrientationLocked(true);
+                barcodeLauncher.launch(options);
+            }
+        });
+
+        edtBarcode = (EditText) findViewById(R.id.editTextBarcode);
         edtBarcode.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                //Toast.makeText(getContext(),keyEvent.toString(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(DialogBarcode.this,keyEvent.toString(), Toast.LENGTH_SHORT).show();
                 if (keyEvent != null && keyEvent.getAction() == KeyEvent.ACTION_DOWN && keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    aListener.accept(edtBarcode.getText().toString());
-                    dismiss();
+                    accept();
                     return true;
                 }
                 return false;
@@ -74,15 +78,24 @@ public class DialogBarcode extends DialogFragment {
         edtBarcode.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                if (keyEvent.getKeyCode()==KeyEvent.KEYCODE_F2) {
-                    dismiss();
+                //Toast.makeText(getApplicationContext(),keyEvent.toString(), Toast.LENGTH_SHORT).show();
+                if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_F2) {
+                    finish();
                     return true;
                 }
                 return false;
             }
         });
 
-        return v;
+    }
+
+    private void accept(){
+        Intent intent = new Intent();
+        intent.putExtra("barcode", edtBarcode.getText().toString());
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
 }
+
+

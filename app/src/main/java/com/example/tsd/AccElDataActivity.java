@@ -1,13 +1,17 @@
 package com.example.tsd;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,9 +23,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,7 +48,6 @@ public class AccElDataActivity extends AppCompatActivity {
     private Date dateDoc;
     private int id_type;
     private boolean addFlag;
-    private boolean checkFlag;
     private AccDataAdapter adapter;
 
     @Override
@@ -65,7 +65,6 @@ public class AccElDataActivity extends AppCompatActivity {
         ParsePosition pos = new ParsePosition(0);
         dateDoc = simpledateformat.parse(sdat,pos);
         addFlag = false;
-        checkFlag = false;
 
         this.setTitle("№ "+numDoc+" от "+DateFormat.format("dd.MM.yy", dateDoc).toString());
 
@@ -111,9 +110,6 @@ public class AccElDataActivity extends AppCompatActivity {
                     if (addFlag){
                         addFlag=false;
                         newAccDataEl();
-                    } else if (checkFlag){
-                        checkFlag=false;
-                        checkAccData("Отсканируйте следующий упаковочный лист");
                     }
                 }
             }
@@ -208,9 +204,6 @@ public class AccElDataActivity extends AppCompatActivity {
             case R.id.action_acc_data_new:
                 newAccDataEl();
                 return true;
-            case R.id.action_acc_data_check:
-                checkAccData("Отсканируйте упаковочный лист");
-                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -219,9 +212,6 @@ public class AccElDataActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_F3){
             newAccDataEl();
-            return true;
-        } else if (keyCode == KeyEvent.KEYCODE_F4){
-            checkAccData("Отсканируйте упаковочный лист");
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -324,22 +314,27 @@ public class AccElDataActivity extends AppCompatActivity {
         dialog.show(getSupportFragmentManager(), "dialogElAccDataNew");
     }
 
-    private void newAccDataEl(){
-
-        DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
-            @Override
-            public void accept(String barcode) {
-                BarcodDecoder.Barcod b = BarcodDecoder.decode(barcode);
-                if (b.ok && b.id_part>0 && b.type.equals("e")){
-                    newAccDataDialog(b.id_part,b.kvo,b.kvom,b.barcodeCont);
-                } else {
-                    Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
+    ActivityResultLauncher<Intent> addActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData().hasExtra("barcode")) {
+                        String barcode = result.getData().getStringExtra("barcode");
+                        BarcodDecoder.Barcod b=BarcodDecoder.decode(barcode);
+                        if (b.ok && b.id_part>0 && b.type.equals("e")){
+                            newAccDataDialog(b.id_part,b.kvo,b.kvom,b.barcodeCont);
+                        } else {
+                            Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
+                        }
+                    }
                 }
-            }
-        };
+            });
 
-        DialogBarcode dialog = new DialogBarcode("Отсканируйте упаковочный лист",listener);
-        dialog.show(getSupportFragmentManager(), "dialogElAccBarcode");
+    private void newAccDataEl(){
+        Intent intent = new Intent(AccElDataActivity.this, DialogBarcode.class);
+        intent.putExtra("title","Отсканируйте упаковочный лист");
+        addActivityResultLauncher.launch(intent);
     }
 
     private void edtAccData(int pos){
@@ -398,106 +393,6 @@ public class AccElDataActivity extends AppCompatActivity {
         alert.show();
     }
 
-    private void setOk(AccDataAdapter.AccData a){
-
-        HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
-            @Override
-            public void postExecute(String resp, String err) {
-                if (err.isEmpty()){
-                    checkFlag=true;
-                    refresh();
-                } else {
-                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
-                }
-            }
-        };
-
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("chk", true);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        String[] par = new String[3];
-        par[0]="prod?id=eq."+String.valueOf(a.id);
-        par[1]="PATCH";
-        par[2]= obj.toString();
-        new HttpReq(listener).execute(par);
-    }
-
-    private void scanCont(List<AccDataAdapter.AccData> cont){
-        DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
-            @Override
-            public void accept(String barcode) {
-                boolean ok=false;
-                for (AccDataAdapter.AccData item : cont){
-                    if (barcode.equals(item.namcont)){
-                        ok=true;
-                        setOk(item);
-                        break;
-                    }
-                }
-                if (ok){
-                    Toast.makeText(AccElDataActivity.this,"Отлично!", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(AccElDataActivity.this,"Этикетка не соответствует поддону! Наклейте правильную этикетку!", Toast.LENGTH_LONG).show();
-                    scanCont(cont);
-                }
-            }
-        };
-
-        String nams="";
-
-        for (AccDataAdapter.AccData item : cont){
-            if (!nams.isEmpty()){
-                nams+=" или ";
-            }
-            nams+=item.namcont;
-        }
-
-        DialogBarcode dialog = new DialogBarcode("Наклейте и отсканируйте этикетку поддона: "+nams,listener);
-        dialog.show(getSupportFragmentManager(), "dialogElAccCheckBarcode");
-    }
-
-    private void checkAccData(String mess){
-        boolean finish=true;
-        for (AccDataAdapter.AccData a : adapter.getItemList()){
-            if (!a.ok){
-                finish=false;
-                break;
-            }
-        }
-        if (finish){
-            Toast.makeText(AccElDataActivity.this,"Все поддоны промаркированы.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
-            @Override
-            public void accept(String barcode) {
-                BarcodDecoder.Barcod b = BarcodDecoder.decode(barcode);
-                if (b.ok && b.id_part>0){
-                    List<AccDataAdapter.AccData> namsCont = new ArrayList<>();
-                    for (AccDataAdapter.AccData a : adapter.getItemList()){
-                        if (a.id_part==b.id_part && (b.kvo==0 || b.kvo==a.kvo)){
-                            namsCont.add(a);
-                        }
-                    }
-                    if (namsCont.size()>0){
-                        scanCont(namsCont);
-                    } else {
-                        Toast.makeText(AccElDataActivity.this,"Не найдено подходящих этикеток для поддона", Toast.LENGTH_LONG).show();
-                    }
-                } else {
-                    Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
-                }
-            }
-        };
-
-        DialogBarcode dialog = new DialogBarcode(mess,listener);
-        dialog.show(getSupportFragmentManager(), "dialogElAccCheckBarcode");
-    }
-
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         int pos = item.getGroupId();
@@ -512,24 +407,5 @@ public class AccElDataActivity extends AppCompatActivity {
             }
         }
         return super.onContextItemSelected(item);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        IntentResult intentResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        // if the intentResult is null then
-        // toast a message as "cancelled"
-        if (intentResult != null) {
-            if (intentResult.getContents() == null) {
-                Toast.makeText(getBaseContext(), "Cancelled", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getBaseContext(), intentResult.getContents()+"\n"+intentResult.getFormatName(), Toast.LENGTH_SHORT).show();
-                // if the intentResult is not null we'll set
-                // the content and format of scan message
-                //messageText.setText(intentResult.getContents());
-                //messageFormat.setText(intentResult.getFormatName());
-            }
-        }
     }
 }

@@ -15,6 +15,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TSD">
         <activity
+            android:name=".DialogBarcode"
+            android:exported="false" />
+        <activity
             android:name=".AccElDataActivity"
             android:exported="false" />
         <activity
@@ -27,8 +30,14 @@
             android:name=".AccWireDataActivity"
             android:exported="false" />
         <activity
+            android:name=".CaptureActivityPortrait"
+            android:screenOrientation="sensorPortrait"
+            android:stateNotNeeded="true"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -23,22 +23,29 @@
             android:id="@+id/editTextBarcode"
             android:layout_width="fill_parent"
             android:layout_height="100dp"
-            android:layout_margin="30dp"
+            android:layout_below="@id/lblBarcode"
             android:layout_marginStart="30dp"
             android:layout_marginTop="30dp"
             android:layout_marginEnd="30dp"
             android:layout_marginBottom="30dp"
-            android:layout_below="@id/lblBarcode"
             android:imeOptions="actionDone" />
+
+        <Button
+            android:id="@+id/btnBarcodeCam"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/editTextBarcode"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="30dp"
+            android:text="Камера" />
 
         <Button
             android:id="@+id/btnBarcodeCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Отмена(F2)"
-            android:layout_below="@id/editTextBarcode"
+            android:layout_below="@id/btnBarcodeCam"
             android:layout_centerHorizontal="true"
-            />
+            android:text="Отмена(F2)" />
     </RelativeLayout>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

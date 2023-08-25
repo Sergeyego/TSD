@@ -1,7 +1,9 @@
 package com.example.tsd;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.KeyEvent;
@@ -11,7 +13,12 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -40,9 +47,8 @@ public class AccWireDataActivity extends AppCompatActivity {
     private int id_acc;
     private String numDoc;
     private Date dateDoc;
-    private int id_type;
+    //private int id_type;
     private boolean addFlag;
-    private boolean checkFlag;
     private AccDataAdapter adapter;
 
     @Override
@@ -53,14 +59,13 @@ public class AccWireDataActivity extends AppCompatActivity {
         numDoc = arguments.get("num").toString();
         String type = arguments.get("type").toString();
         id_acc = arguments.getInt("id");
-        id_type = arguments.getInt("id_type");
+        //id_type = arguments.getInt("id_type");
 
         String sdat = arguments.getString("date");
         SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyy-MM-dd");
         ParsePosition pos = new ParsePosition(0);
         dateDoc = simpledateformat.parse(sdat,pos);
         addFlag = false;
-        checkFlag = false;
 
         this.setTitle("№ "+numDoc+" от "+DateFormat.format("dd.MM.yy", dateDoc).toString());
 
@@ -106,9 +111,6 @@ public class AccWireDataActivity extends AppCompatActivity {
                     if (addFlag){
                         addFlag=false;
                         newAccData();
-                    } else if (checkFlag){
-                        checkFlag=false;
-                        checkAccData("Отсканируйте следующий упаковочный лист");
                     }
                 }
             }
@@ -209,9 +211,6 @@ public class AccWireDataActivity extends AppCompatActivity {
             case R.id.action_acc_data_new:
                 newAccData();
                 return true;
-            case R.id.action_acc_data_check:
-                checkAccData("Отсканируйте упаковочный лист");
-                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -220,9 +219,6 @@ public class AccWireDataActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_F3){
             newAccData();
-            return true;
-        } else if (keyCode == KeyEvent.KEYCODE_F4){
-            checkAccData("Отсканируйте упаковочный лист");
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -317,22 +313,27 @@ public class AccWireDataActivity extends AppCompatActivity {
         dialog.show(getSupportFragmentManager(), "dialogWireAccDataNew");
     }
 
-    private void newAccData(){
-
-        DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
-            @Override
-            public void accept(String barcode) {
-                BarcodDecoder.Barcod b=BarcodDecoder.decode(barcode);
-                if (b.ok && b.id_part>0 && b.type.equals("w")){
-                    newAccDataDialog(b.id_part,b.kvo,b.kvom,b.barcodeCont);
-                } else {
-                    Toast.makeText(AccWireDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
+    ActivityResultLauncher<Intent> addActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        String barcode = result.getData().getStringExtra("barcode");
+                        BarcodDecoder.Barcod b=BarcodDecoder.decode(barcode);
+                        if (b.ok && b.id_part>0 && b.type.equals("w")){
+                            newAccDataDialog(b.id_part,b.kvo,b.kvom,b.barcodeCont);
+                        } else {
+                            Toast.makeText(AccWireDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
+                        }
+                    }
                 }
-            }
-        };
+            });
 
-        DialogBarcode dialog = new DialogBarcode("Отсканируйте упаковочный лист",listener);
-        dialog.show(getSupportFragmentManager(), "dialogWireAccBarcode");
+    private void newAccData(){
+        Intent intent = new Intent(AccWireDataActivity.this, DialogBarcode.class);
+        intent.putExtra("title","Отсканируйте упаковочный лист");
+        addActivityResultLauncher.launch(intent);
     }
 
     private void edtAccData(int pos){
@@ -389,106 +390,6 @@ public class AccWireDataActivity extends AppCompatActivity {
                         }).setNegativeButton("Нет",null);
         AlertDialog alert = builder.create();
         alert.show();
-    }
-
-    private void setOk(AccDataAdapter.AccData a){
-
-        HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
-            @Override
-            public void postExecute(String resp, String err) {
-                if (err.isEmpty()){
-                    checkFlag=true;
-                    refresh();
-                } else {
-                    Toast.makeText(AccWireDataActivity.this,err, Toast.LENGTH_LONG).show();
-                }
-            }
-        };
-
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("chk", true);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        String[] par = new String[3];
-        par[0]="wire_warehouse?id=eq."+String.valueOf(a.id);
-        par[1]="PATCH";
-        par[2]= obj.toString();
-        new HttpReq(listener).execute(par);
-    }
-
-    private void scanCont(List<AccDataAdapter.AccData> cont){
-        DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
-            @Override
-            public void accept(String barcode) {
-                boolean ok=false;
-                for (AccDataAdapter.AccData item : cont){
-                    if (barcode.equals(item.namcont)){
-                        ok=true;
-                        setOk(item);
-                        break;
-                    }
-                }
-                if (ok){
-                    Toast.makeText(AccWireDataActivity.this,"Отлично!", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(AccWireDataActivity.this,"Этикетка не соответствует поддону! Наклейте правильную этикетку!", Toast.LENGTH_LONG).show();
-                    scanCont(cont);
-                }
-            }
-        };
-
-        String nams="";
-
-        for (AccDataAdapter.AccData item : cont){
-            if (!nams.isEmpty()){
-                nams+=" или ";
-            }
-            nams+=item.namcont;
-        }
-
-        DialogBarcode dialog = new DialogBarcode("Наклейте и отсканируйте этикетку поддона: "+nams,listener);
-        dialog.show(getSupportFragmentManager(), "dialogWireAccCheckBarcode");
-    }
-
-    private void checkAccData(String mess){
-        boolean finish=true;
-        for (AccDataAdapter.AccData a : adapter.getItemList()){
-            if (!a.ok){
-                finish=false;
-                break;
-            }
-        }
-        if (finish){
-            Toast.makeText(AccWireDataActivity.this,"Все поддоны промаркированы.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        DialogBarcode.acceptListener listener = new DialogBarcode.acceptListener() {
-            @Override
-            public void accept(String barcode) {
-                BarcodDecoder.Barcod b = BarcodDecoder.decode(barcode);
-                if (b.ok && b.id_part>0){
-                    List<AccDataAdapter.AccData> namsCont = new ArrayList<>();
-                    for (AccDataAdapter.AccData a : adapter.getItemList()){
-                        if (a.id_part==b.id_part && (b.kvo==0 || b.kvo==a.kvo)){
-                            namsCont.add(a);
-                        }
-                    }
-                    if (namsCont.size()>0){
-                        scanCont(namsCont);
-                    } else {
-                        Toast.makeText(AccWireDataActivity.this,"Не найдено подходящих этикеток для поддона", Toast.LENGTH_LONG).show();
-                    }
-                } else {
-                    Toast.makeText(AccWireDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
-                }
-            }
-        };
-
-        DialogBarcode dialog = new DialogBarcode(mess,listener);
-        dialog.show(getSupportFragmentManager(), "dialogWireAccCheckBarcode");
     }
 
     @Override
