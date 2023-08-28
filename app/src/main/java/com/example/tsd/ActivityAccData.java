@@ -1,16 +1,5 @@
 package com.example.tsd;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -24,6 +13,17 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,11 +33,10 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class AccElDataActivity extends AppCompatActivity {
+public class ActivityAccData extends AppCompatActivity {
     
     private RecyclerView rvData;
     private TextView lblTotal;
@@ -49,6 +48,7 @@ public class AccElDataActivity extends AppCompatActivity {
     private int id_type;
     private boolean addFlag;
     private AccDataAdapter adapter;
+    private String prefix;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +59,7 @@ public class AccElDataActivity extends AppCompatActivity {
         String type = arguments.get("type").toString();
         id_acc = arguments.getInt("id");
         id_type = arguments.getInt("id_type");
+        prefix=arguments.get("prefix").toString();
 
         String sdat = arguments.getString("date");
         SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyy-MM-dd");
@@ -97,14 +98,13 @@ public class AccElDataActivity extends AppCompatActivity {
     private void refresh() {
         
         String id=String.valueOf(id_acc);
-        String query="prod?id_nakl=eq."+id+"&select=id,id_part,kvo,shtuk,numcont,barcodecont,chk,parti!prod_id_p_fkey(n_s,dat_part,elrtr(marka),diam,el_pack(pack_ed,pack_group)),prod_nakl(num,dat,prod_nakl_tip!prod_nakl_id_ist_fkey(prefix,nam))&order=id";
-
+        String query="acceptances/"+prefix+"/data/"+id;
         HttpReq.onPostExecuteListener getAccDataListener = new HttpReq.onPostExecuteListener() {
             @Override
             public void postExecute(String resp, String err) {
                 swipeRefreshLayout.setRefreshing(false);
                 if (!err.isEmpty()){
-                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                    Toast.makeText(ActivityAccData.this,err, Toast.LENGTH_LONG).show();
                 } else {
                     updList(resp);
                     if (addFlag){
@@ -139,28 +139,14 @@ public class AccElDataActivity extends AppCompatActivity {
                 double kvo=obj.getDouble("kvo");
                 int kvom=obj.isNull("shtuk") ? 0 : obj.getInt("shtuk");
                 boolean ok=obj.getBoolean("chk");
-                JSONObject objParti = obj.getJSONObject("parti");
-                String npart=objParti.getString("n_s");
-                String datPart=objParti.getString("dat_part");
-                double diam=objParti.getDouble("diam");
-                String marka=objParti.getJSONObject("elrtr").getString("marka");
-                String packEd=objParti.getJSONObject("el_pack").getString("pack_ed");
-                String pack_group=objParti.getJSONObject("el_pack").getString("pack_group");
-                JSONObject objNakl = obj.getJSONObject("prod_nakl");
-                String numNakl=objNakl.getString("num");
-                String datNakl=objNakl.getString("dat");
-                JSONObject objType=objNakl.getJSONObject("prod_nakl_tip");
-                String prefix=objType.isNull("prefix")? "" : objType.getString("prefix");
+                String npart=obj.getString("n_s");
+                String datPart=obj.getString("dat_part");
+                String marka=obj.getString("marka");
+                String packEd=obj.getString("pack_ed");
+                String pack_group=obj.getString("pack_group");
                 String barcodecont=obj.isNull("barcodecont") ? "" : obj.getString("barcodecont");
-                //String typeNam=objNakl.getJSONObject("prod_nakl_tip").getString("nam");
 
                 SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyy-MM-dd");
-                Calendar cal=Calendar.getInstance();
-                try {
-                    cal.setTime(simpledateformat.parse(datNakl));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
 
                 Date dPart = new Date();
                 try {
@@ -169,12 +155,16 @@ public class AccElDataActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                String mnom=marka+" ф "+String.valueOf(diam)+"\n("+packEd+"/"+pack_group+")";
+                String mnom=marka+"\n("+packEd;
+                if (pack_group.isEmpty() || pack_group.equals("-")){
+                    mnom+=")";
+                } else {
+                    mnom+="/"+pack_group+")";
+                }
                 String part=npart+" от "+DateFormat.format("dd.MM.yy", dPart).toString();
-                String namcont= barcodecont.isEmpty() ? ("EUR-"+prefix+cal.get(Calendar.YEAR)+"-"+numNakl+"-"+String.valueOf(numcont)) : barcodecont;
                 total+=kvo;
 
-                AccDataAdapter.AccData a = new AccDataAdapter.AccData(mnom,part,namcont,numcont,id,id_part,kvo,kvom,ok);
+                AccDataAdapter.AccData a = new AccDataAdapter.AccData(mnom,part,barcodecont,numcont,id,id_part,kvo,kvom,ok);
                 accsd.add(a);
 
             } catch (JSONException e) {
@@ -224,30 +214,22 @@ public class AccElDataActivity extends AppCompatActivity {
                 if (err.isEmpty()){
                     refresh();
                 } else {
-                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                    Toast.makeText(ActivityAccData.this,err, Toast.LENGTH_LONG).show();
                 }
             }
         };
 
         JSONObject obj = new JSONObject();
         try {
-            obj.put("id_part", id_part);
             obj.put("kvo",kvo);
-            if (kvom>0){
-                obj.put("shtuk",kvom);
-            }
+            obj.put("shtuk",kvom);
             obj.put("numcont",numcont);
-
-            obj.put("id_ist",id_type);
-            obj.put("dat", DateFormat.format("yyyy-MM-dd", dateDoc).toString());
-            obj.put("docs",numDoc);
-            obj.put("id_nakl",id_acc);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         String[] par = new String[3];
-        par[0]="prod?id=eq."+String.valueOf(id);
+        par[0]="acceptances/"+prefix+"/data/"+String.valueOf(id);
         par[1]="PATCH";
         par[2]= obj.toString();
         new HttpReq(listener).execute(par);
@@ -261,7 +243,7 @@ public class AccElDataActivity extends AppCompatActivity {
                     addFlag=true;
                     refresh();
                 } else {
-                    Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                    Toast.makeText(ActivityAccData.this,err, Toast.LENGTH_LONG).show();
                 }
             }
         };
@@ -274,17 +256,17 @@ public class AccElDataActivity extends AppCompatActivity {
             obj.put("numcont",numcont);
             obj.put("barcodecont",barcodecont);
             obj.put("chk",!barcodecont.isEmpty());
+            obj.put("id_nakl",id_acc);
 
-            obj.put("id_ist",id_type);
+            obj.put("id_type",id_type);
             obj.put("dat", DateFormat.format("yyyy-MM-dd", dateDoc).toString());
             obj.put("docs",numDoc);
-            obj.put("id_nakl",id_acc);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         String[] par = new String[3];
-        par[0]="prod";
+        par[0]="acceptances/"+prefix+"/data";
         par[1]="POST";
         par[2]= obj.toString();
         new HttpReq(listener).execute(par);
@@ -301,15 +283,16 @@ public class AccElDataActivity extends AppCompatActivity {
         bundle.putInt("kvom",kvom);
         bundle.putInt("numcont",n);
         bundle.putString("barcodecont",barcodecont);
+        bundle.putString("prefix",prefix);
 
-        DialogAccDataEdtEl.acceptListener listener = new DialogAccDataEdtEl.acceptListener() {
+        DialogAccDataEdt.acceptListener listener = new DialogAccDataEdt.acceptListener() {
             @Override
             public void accept(int id_part, double kvo, int kvom, int numcont, String barcodecont) {
                 insertAccData(id_part,kvo,kvom,numcont, barcodecont);
             }
         };
 
-        DialogAccDataEdtEl dialog = new DialogAccDataEdtEl(listener);
+        DialogAccDataEdt dialog = new DialogAccDataEdt(listener);
         dialog.setArguments(bundle);
         dialog.show(getSupportFragmentManager(), "dialogElAccDataNew");
     }
@@ -322,17 +305,17 @@ public class AccElDataActivity extends AppCompatActivity {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData().hasExtra("barcode")) {
                         String barcode = result.getData().getStringExtra("barcode");
                         BarcodDecoder.Barcod b=BarcodDecoder.decode(barcode);
-                        if (b.ok && b.id_part>0 && b.type.equals("e")){
+                        if (b.ok && b.id_part>0 && b.type.equals(prefix)){
                             newAccDataDialog(b.id_part,b.kvo,b.kvom,b.barcodeCont);
                         } else {
-                            Toast.makeText(AccElDataActivity.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
+                            Toast.makeText(ActivityAccData.this,"Не удалось разобрать штрихкод", Toast.LENGTH_LONG).show();
                         }
                     }
                 }
             });
 
     private void newAccDataEl(){
-        Intent intent = new Intent(AccElDataActivity.this, DialogBarcode.class);
+        Intent intent = new Intent(ActivityAccData.this, DialogBarcode.class);
         intent.putExtra("title","Отсканируйте упаковочный лист");
         addActivityResultLauncher.launch(intent);
     }
@@ -346,21 +329,22 @@ public class AccElDataActivity extends AppCompatActivity {
         bundle.putInt("kvom",data.kvom);
         bundle.putInt("numcont",data.numcont);
         bundle.putString("barcodecont",data.namcont);
+        bundle.putString("prefix",prefix);
 
-        DialogAccDataEdtEl.acceptListener listener = new DialogAccDataEdtEl.acceptListener() {
+        DialogAccDataEdt.acceptListener listener = new DialogAccDataEdt.acceptListener() {
             @Override
             public void accept(int id_part, double kvo, int kvom, int numcont, String barcodecont) {
                 updateAccData(data.id,id_part,kvo,kvom,numcont);
             }
         };
 
-        DialogAccDataEdtEl dialog = new DialogAccDataEdtEl(listener);
+        DialogAccDataEdt dialog = new DialogAccDataEdt(listener);
         dialog.setArguments(bundle);
-        dialog.show(getSupportFragmentManager(), "dialogElAccDataEdt");
+        dialog.show(getSupportFragmentManager(), "dialogAccDataEdt"+prefix);
     }
 
     private void delAccData(int pos){
-        AlertDialog.Builder builder = new AlertDialog.Builder(AccElDataActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(ActivityAccData.this);
         AccDataAdapter.AccData item = adapter.getItem(pos);
         builder.setTitle("Подтвердите удаление")
                 .setMessage("Удалить "+item.marka+" "+item.parti+"?")
@@ -376,13 +360,13 @@ public class AccElDataActivity extends AppCompatActivity {
                                         if (err.isEmpty()) {
                                             refresh();
                                         } else {
-                                            Toast.makeText(AccElDataActivity.this,err, Toast.LENGTH_LONG).show();
+                                            Toast.makeText(ActivityAccData.this,err, Toast.LENGTH_LONG).show();
                                         }
                                     }
                                 };
 
                                 String[] par = new String[3];
-                                par[0]="prod?id=eq."+String.valueOf(item.id);
+                                par[0]="acceptances/"+prefix+"/data/"+String.valueOf(item.id);
                                 par[1]="DELETE";
                                 par[2]= "";
                                 new HttpReq(listener).execute(par);

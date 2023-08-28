@@ -18,16 +18,10 @@
             android:name=".DialogBarcode"
             android:exported="false" />
         <activity
-            android:name=".AccElDataActivity"
+            android:name=".ActivityAcc"
             android:exported="false" />
         <activity
-            android:name=".AccElActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AccWireActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AccWireDataActivity"
+            android:name=".ActivityAccData"
             android:exported="false" />
         <activity
             android:name=".CaptureActivityPortrait"

@@ -32,12 +32,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void newAccEl() {
-        Intent intent = new Intent(MainActivity.this, AccElActivity.class);
+        Intent intent = new Intent(MainActivity.this, ActivityAcc.class);
+        intent.putExtra("title","Отправить электроды");
+        intent.putExtra("prefix","e");
         startActivity(intent);
     }
 
     private void newAccWire() {
-        Intent intent = new Intent(MainActivity.this, AccWireActivity.class);
+        Intent intent = new Intent(MainActivity.this, ActivityAcc.class);
+        intent.putExtra("title","Отправить проволоку");
+        intent.putExtra("prefix","w");
         startActivity(intent);
     }
 

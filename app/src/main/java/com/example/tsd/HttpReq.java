@@ -1,9 +1,6 @@
 package com.example.tsd;
 
 import android.os.AsyncTask;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,24 +30,23 @@ public class HttpReq extends AsyncTask<String , Void ,String> {
         server_response = "";
         server_error = "";
         try {
-            url = new URL("http://192.168.1.10:3000/"+strings[0]);
+            url = new URL("http://192.168.1.10:7000/"+strings[0]);
             urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestProperty("Content-Type", "application/json; utf-8");
-            urlConnection.setRequestProperty("Accept", "application/json");
+            urlConnection.setRequestProperty("Content-Type", "application/json");
 
             if (strings.length>=3) {
-                urlConnection.setRequestProperty("Prefer", "return=representation");
                 urlConnection.setRequestMethod(strings[1]);
                 urlConnection.setDoOutput(true);
                 String jsonInputString = strings[2];
                 OutputStream os = urlConnection.getOutputStream();
                 byte[] input = jsonInputString.getBytes("utf-8");
                 os.write(input, 0, input.length);
+                os.close();
             }
 
             InputStream es = urlConnection.getErrorStream();
             if (es!=null){
-                server_error=getErr(readStream(es));
+                server_error=readStream(es);
             }
 
             InputStream is = urlConnection.getInputStream();
@@ -59,9 +55,15 @@ public class HttpReq extends AsyncTask<String , Void ,String> {
             }
 
         } catch (MalformedURLException e) {
+            if (!server_error.isEmpty()){
+                server_error+="\n";
+            }
             server_error += e.getLocalizedMessage();
             e.printStackTrace();
         } catch (IOException e) {
+            if (!server_error.isEmpty()){
+                server_error+="\n";
+            }
             server_error += e.getLocalizedMessage();
             e.printStackTrace();
         }
@@ -74,26 +76,6 @@ public class HttpReq extends AsyncTask<String , Void ,String> {
         if (pListener!=null){
             pListener.postExecute(server_response,server_error);
         }
-    }
-
-    private String getErr(String jsonResp) {
-        String err="";
-        JSONObject obj=null;
-        try {
-            obj = new JSONObject(jsonResp);
-        } catch (JSONException e) {
-            return "";
-        }
-        if (obj.has("message")&& obj.has("hint")){
-            try {
-                String mes=obj.isNull("message")? "" : obj.getString("message");
-                String hint=obj.isNull("hint")? "" : obj.getString("hint");
-                err=mes+" "+hint+" ";
-            } catch (JSONException e) {
-                return "";
-            }
-        }
-        return err;
     }
 
     private String readStream(InputStream in) {

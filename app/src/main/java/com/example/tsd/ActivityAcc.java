@@ -1,10 +1,4 @@
 package com.example.tsd;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -17,9 +11,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,7 +31,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-public class AccElActivity extends AppCompatActivity {
+public class ActivityAcc extends AppCompatActivity {
 
     private TextView tvDateBeg;
     private TextView tvDateEnd;
@@ -38,14 +41,15 @@ public class AccElActivity extends AppCompatActivity {
     private AccAdapter adapter;
     private boolean addFlag;
     private int newId;
+    private String prefix;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_acc);
-
-        this.setTitle("Отправить электроды");
-
+        Bundle arguments = getIntent().getExtras();
+        this.setTitle(arguments.get("title").toString());
+        prefix=arguments.get("prefix").toString();
         addFlag = false;
         newId=-1;
 
@@ -96,12 +100,13 @@ public class AccElActivity extends AppCompatActivity {
     }
 
     private void openAccData(AccAdapter.Acc a){
-        Intent intent = new Intent(AccElActivity.this, AccElDataActivity.class);
+        Intent intent = new Intent(ActivityAcc.this, ActivityAccData.class);
         intent.putExtra("id",a.id);
         intent.putExtra("id_type",a.id_type);
         intent.putExtra("num",a.num);
         intent.putExtra("type",a.type);
         intent.putExtra("date",DateFormat.format("yyyy-MM-dd", a.dat).toString());
+        intent.putExtra("prefix",prefix);
         startActivity(intent);
     }
 
@@ -109,19 +114,19 @@ public class AccElActivity extends AppCompatActivity {
 
         String sdBeg=DateFormat.format("yyyy-MM-dd", dateEditBeg.getDate()).toString();
         String sdEnd=DateFormat.format("yyyy-MM-dd", dateEditEnd.getDate()).toString();
-        String query="prod_nakl?dat=gte.'"+sdBeg+"'&dat=lte.'"+sdEnd+"'&select=id,dat,num,id_ist,prod_nakl_tip!prod_nakl_id_ist_fkey(nam,en)&order=dat.desc,num.desc";
+        String query="acceptances/"+prefix+"/?datbeg='"+sdBeg+"'&datend='"+sdEnd+"'";
 
         HttpReq.onPostExecuteListener getAccListener = new HttpReq.onPostExecuteListener() {
             @Override
             public void postExecute(String resp, String err) {
                 swipeRefreshLayout.setRefreshing(false);
                 if (!err.isEmpty()){
-                    Toast.makeText(AccElActivity.this,err, Toast.LENGTH_LONG).show();
+                    Toast.makeText(ActivityAcc.this,err, Toast.LENGTH_LONG).show();
                 } else {
                     updList(resp);
                     if (addFlag){
                         addFlag=false;
-                        newAccEl();
+                        newAcc();
                     } else if (newId>0){
                         for (AccAdapter.Acc a : adapter.getItemList()){
                             if (a.id==newId){
@@ -146,7 +151,7 @@ public class AccElActivity extends AppCompatActivity {
             jsonArray = new JSONArray(jsonResp);
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(AccElActivity.this,"Не удалось разобрать ответ от сервера: "+e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(ActivityAcc.this,"Не удалось разобрать ответ от сервера: "+e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             adapter.refresh(accs);
             return;
         }
@@ -154,22 +159,18 @@ public class AccElActivity extends AppCompatActivity {
             try {
                 JSONObject obj=jsonArray.getJSONObject(i);
                 int id=obj.getInt("id");
-                int id_type=obj.getInt("id_ist");
+                int id_type=obj.getInt("id_type");
                 String num=obj.getString("num");
-                JSONObject objType = obj.getJSONObject("prod_nakl_tip");
-                String type=objType.getString("nam");
-                boolean en = objType.getBoolean("en");
+                String type=obj.getString("nam");
                 String sDate = obj.getString("dat");
                 SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyy-MM-dd");
                 ParsePosition pos = new ParsePosition(0);
                 Date stringDate = simpledateformat.parse(sDate,pos);
-                if (en){
-                    AccAdapter.Acc a = new AccAdapter.Acc(num,type,stringDate,id,id_type);
-                    accs.add(a);
-                }
+                AccAdapter.Acc a = new AccAdapter.Acc(num,type,stringDate,id,id_type);
+                accs.add(a);
             } catch (JSONException e) {
                 e.printStackTrace();
-                Toast.makeText(AccElActivity.this,"Не удалось разобрать ответ от сервера: "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(ActivityAcc.this,"Не удалось разобрать ответ от сервера: "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                 adapter.refresh(accs);
                 return;
             }
@@ -207,7 +208,7 @@ public class AccElActivity extends AppCompatActivity {
         return id;
     }
 
-    private void newAccEl(){
+    private void newAcc(){
 
         Calendar date = Calendar.getInstance();
         Bundle bundle = new Bundle();
@@ -219,13 +220,12 @@ public class AccElActivity extends AppCompatActivity {
         n++;
         bundle.putString("num", String.format("%04d",n));
         bundle.putString("dat",DateFormat.format("dd.MM.yyyy", date).toString());
-        bundle.putInt("id_type",1);
-        bundle.putString("querytype","prod_nakl_tip?en=eq.true&select=id,nam&order=nam");
+        bundle.putInt("id_type",-1);
+        bundle.putString("querytype","acceptances/types/"+prefix);
 
         DialogAccNew.acceptListener a = new DialogAccNew.acceptListener() {
             @Override
             public void accept(String num, Calendar dat, int id_type) {
-                //Toast.makeText(getApplicationContext(),"OK: "+num+" "+String.valueOf(id_type), Toast.LENGTH_SHORT).show();
                 HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
                     @Override
                     public void postExecute(String resp, String err) {
@@ -240,7 +240,7 @@ public class AccElActivity extends AppCompatActivity {
                             }
                             refresh();
                         } else {
-                            Toast.makeText(AccElActivity.this,err, Toast.LENGTH_LONG).show();
+                            Toast.makeText(ActivityAcc.this,err, Toast.LENGTH_LONG).show();
                         }
                     }
                 };
@@ -248,14 +248,14 @@ public class AccElActivity extends AppCompatActivity {
                 JSONObject obj = new JSONObject();
                 try {
                     obj.put("num", num);
-                    obj.put("id_ist",id_type);
+                    obj.put("id_type",id_type);
                     obj.put("dat",DateFormat.format("yyyy-MM-dd", dat).toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
                 String[] par = new String[3];
-                par[0]="prod_nakl";
+                par[0]="acceptances/"+prefix;
                 par[1]="POST";
                 par[2]= obj.toString();
                 new HttpReq(listener).execute(par);
@@ -313,7 +313,7 @@ public class AccElActivity extends AppCompatActivity {
     }
 
     private void delAcc(int pos) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(AccElActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(ActivityAcc.this);
         builder.setTitle("Подтвердите удаление")
                 .setMessage("Удалить "+adapter.getItem(pos).num+"?")
                 .setCancelable(false)
@@ -328,14 +328,14 @@ public class AccElActivity extends AppCompatActivity {
                                         if (err.isEmpty()) {
                                             refresh();
                                         } else {
-                                            Toast.makeText(AccElActivity.this,err, Toast.LENGTH_LONG).show();
+                                            Toast.makeText(ActivityAcc.this,err, Toast.LENGTH_LONG).show();
                                         }
                                         //Toast.makeText(getApplicationContext(),resp, Toast.LENGTH_LONG).show();
                                     }
                                 };
 
                                 String[] par = new String[3];
-                                par[0]="prod_nakl?id=eq."+String.valueOf(adapter.getItem(pos).id);
+                                par[0]="acceptances/"+prefix+"/"+String.valueOf(adapter.getItem(pos).id);
                                 par[1]="DELETE";
                                 par[2]= "";
                                 new HttpReq(listener).execute(par);
@@ -353,7 +353,7 @@ public class AccElActivity extends AppCompatActivity {
         bundle.putString("num", item.num);
         bundle.putString("dat",DateFormat.format("dd.MM.yyyy", item.dat).toString());
         bundle.putInt("id_type",item.id_type);
-        bundle.putString("querytype","prod_nakl_tip?en=eq.true&select=id,nam&order=nam");
+        bundle.putString("querytype","acceptances/types/"+prefix);
 
         DialogAccNew.acceptListener a = new DialogAccNew.acceptListener() {
             @Override
@@ -364,7 +364,7 @@ public class AccElActivity extends AppCompatActivity {
                         if (err.isEmpty()) {
                             refresh();
                         } else {
-                            Toast.makeText(AccElActivity.this,err, Toast.LENGTH_LONG).show();
+                            Toast.makeText(ActivityAcc.this,err, Toast.LENGTH_LONG).show();
                         }
                     }
                 };
@@ -372,14 +372,14 @@ public class AccElActivity extends AppCompatActivity {
                 JSONObject obj = new JSONObject();
                 try {
                     obj.put("num", num);
-                    obj.put("id_ist",id_type);
+                    obj.put("id_type",id_type);
                     obj.put("dat",DateFormat.format("yyyy-MM-dd", dat).toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
                 String[] par = new String[3];
-                par[0]="prod_nakl?id=eq."+String.valueOf(item.id);
+                par[0]="acceptances/"+prefix+"/"+String.valueOf(item.id);
                 par[1]="PATCH";
                 par[2]= obj.toString();
                 new HttpReq(listener).execute(par);

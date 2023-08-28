@@ -85,7 +85,7 @@ public class AccDataAdapter extends RecyclerView.Adapter<AccDataAdapter.AccViewH
         holder.parti.setText("партия №"+a.parti);
         DecimalFormat ourForm = new DecimalFormat("###,##0.00");
         holder.kvo.setText(ourForm.format(a.kvo)+" кг");
-        holder.numcont.setText("поддон №"+String.valueOf(a.numcont));
+        holder.numcont.setText("поддон №"+String.valueOf(a.numcont)+"\n("+a.namcont+")");
 
         if (a.ok){
             holder.cv.setBackgroundColor(Color.rgb(170,255,170));

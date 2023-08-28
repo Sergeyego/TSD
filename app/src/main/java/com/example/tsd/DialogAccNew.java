@@ -66,7 +66,7 @@ public class DialogAccNew extends DialogFragment  {
 
         Calendar dat = Calendar.getInstance();
         String num = "";
-        currentIdType = 1;
+        currentIdType = -1;
         queryType = "";
 
         View v = inflater.inflate(R.layout.dialog_new_acc, null);
@@ -191,6 +191,10 @@ public class DialogAccNew extends DialogFragment  {
                 spinner.setSelection(i);
                 break;
             }
+        }
+        if (currentIdType<0 && list.size()>0){
+            AccType item = (AccType) spinner.getSelectedItem();
+            currentIdType=item.id;
         }
     }
 }

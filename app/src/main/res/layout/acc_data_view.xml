@@ -41,13 +41,14 @@
                 android:layout_alignParentRight="true"
                 android:paddingLeft="16dp"
                 android:text="1200 кг"
+                android:textColor="@color/black"
                 android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/acc_data_part"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/acc_data_mark"
+                android:layout_below="@+id/acc_data_numcont"
                 android:text="партия 0123 от 15.02.22"
                 android:textSize="16sp" />
 
@@ -58,7 +59,8 @@
                 android:layout_below="@+id/acc_data_kvo"
                 android:layout_alignParentRight="true"
                 android:text="поддон №1"
-                android:textSize="16sp" />
+                android:textAlignment="textEnd"
+                android:textSize="14sp" />
 
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
