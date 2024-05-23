@@ -17,10 +17,12 @@
         <entry key="app/src/main/res/layout/cex_view.xml" value="0.22916666666666666" />
         <entry key="app/src/main/res/layout/dialog_new_acc.xml" value="0.31068840579710144" />
         <entry key="app/src/main/res/layout/dialog_new_acc_data.xml" value="0.46458333333333335" />
+        <entry key="app/src/main/res/layout/dialog_pack_edt.xml" value="0.2140625" />
         <entry key="app/src/main/res/layout/dialog_scan.xml" value="0.5" />
         <entry key="app/src/main/res/layout/pack_data_view.xml" value="0.33" />
         <entry key="app/src/main/res/menu/menu_acc.xml" value="1.292857142857143" />
         <entry key="app/src/main/res/menu/menu_acc_data.xml" value="0.23229166666666667" />
+        <entry key="app/src/main/res/menu/menu_pack.xml" value="0.2140625" />
         <entry key="app/src/main/res/xml/network_security_config.xml" value="0.9156976744186046" />
       </map>
     </option>

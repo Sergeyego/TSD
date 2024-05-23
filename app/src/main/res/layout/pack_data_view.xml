@@ -57,10 +57,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/pack_data_cont"
-                android:layout_toEndOf="@+id/pack_data_rab"
                 android:layout_alignParentRight="true"
                 android:text="Мастер: Колодкина Н.А."
-                android:textSize="14sp" />
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/pack_data_cont"

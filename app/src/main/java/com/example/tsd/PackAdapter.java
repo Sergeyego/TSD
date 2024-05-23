@@ -23,8 +23,9 @@ public class PackAdapter extends RecyclerView.Adapter<PackAdapter.PackViewHolder
         String pallet;
         String rab;
         String master;
+        int id_src;
 
-        Pack(String time, String marka, double kvo, String pallet, String rab, String master)
+        Pack(String time, String marka, double kvo, String pallet, String rab, String master, int id_src)
         {
             this.time = time;
             this.marka = marka;
@@ -32,6 +33,7 @@ public class PackAdapter extends RecyclerView.Adapter<PackAdapter.PackViewHolder
             this.pallet = pallet;
             this.rab = rab;
             this.master = master;
+            this.id_src = id_src;
         }
     }
 
@@ -80,7 +82,11 @@ public class PackAdapter extends RecyclerView.Adapter<PackAdapter.PackViewHolder
         DecimalFormat ourForm = new DecimalFormat("###,##0.00");
         holder.kvo.setText(ourForm.format(a.kvo)+" кг");
 
-        holder.cv.setBackgroundColor(Color.rgb(170,255,170));
+        if (a.id_src!=2){
+            holder.cv.setBackgroundColor(Color.rgb(170,255,170));
+        } else {
+            holder.cv.setBackgroundColor(Color.rgb(0,200,255));
+        }
 
         if (onClickListener!=null) {
             holder.itemView.setOnClickListener(new View.OnClickListener(){

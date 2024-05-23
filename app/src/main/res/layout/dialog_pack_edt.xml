@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <TextView
+            android:id="@+id/lblPackMarka"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="20dp"
+            android:text="Марка"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/lblPackPart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblPackMarka"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="20dp"
+            android:text="Партия"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+        <TextView
+            android:id="@+id/lblPackKvo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblPackPart"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Масса нетто, кг"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/editTextPackKvo"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/lblPackKvo"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_toRightOf="@id/lblPackKvo"
+            android:digits="0123456789."
+            android:imeOptions="actionDone"
+            android:inputType="numberDecimal"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/lblPackKvoM"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblPackKvo"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Количество мест"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/editTextPackKvoM"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/lblPackKvoM"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_toRightOf="@id/lblPackKvoM"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:inputType="number"/>
+
+        <Spinner
+            android:id="@+id/spinnerPackOp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblPackKvoM"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="10dp"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/lblPackMaster"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/spinnerPackOp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="20dp"
+            android:text="Мастер:"
+            android:textSize="16sp" />
+
+        <Spinner
+            android:id="@+id/spinnerPackMaster"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblPackMaster"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="10dp"
+            android:textSize="16sp" />
+
+
+
+        <TextView
+            android:id="@+id/lblPackBarcodeCont"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/spinnerPackMaster"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Штрихкод поддона"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btnPackOk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lblPackBarcodeCont"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginRight="20dp"
+            android:text="Запись(F1)" />
+
+        <Button
+            android:id="@+id/btnPackCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Отмена(F2)"
+            android:layout_alignBaseline="@id/btnPackOk"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="10dp"
+            />
+
+    </RelativeLayout>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

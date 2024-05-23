@@ -214,8 +214,14 @@ public class ActivityAcc extends AppCompatActivity {
         Bundle bundle = new Bundle();
         int n=0;
         if (adapter.getItemCount()>0){
-            String num=adapter.getItem(0).num;
-            n = Integer.parseInt(num);
+            Date current = new Date();
+            if (current.getYear() == adapter.getItem(0).dat.getYear()){
+                String num=adapter.getItem(0).num;
+                try {
+                    n = Integer.parseInt(num);
+                } catch (NumberFormatException e) {
+                }
+            }
         }
         n++;
         bundle.putString("num", String.format("%04d",n));
