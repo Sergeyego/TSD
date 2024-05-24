@@ -50,6 +50,7 @@ public class DialogAccDataEdt extends DialogFragment {
     private EditText edtNumCont;
     private double mas_ed, mas_group;
     private String prefix;
+    private boolean is_new;
 
     private Button btnSave, btnCancel;
 
@@ -76,7 +77,6 @@ public class DialogAccDataEdt extends DialogFragment {
 
         id_part=-1;
 
-
         Bundle args = getArguments();
         if (args != null) {
             id_part=args.getInt("idpart");
@@ -89,23 +89,8 @@ public class DialogAccDataEdt extends DialogFragment {
             edtKvoM.setText(String.valueOf(args.getInt("kvom")));
             edtNumCont.setText(String.valueOf(args.getInt("numcont")));
             lblBarcodeCont.setText(barcodecont);
+            is_new = args.getBoolean("new",false);
         }
-
-        String queryPart = "acceptances/parti/"+prefix+"/"+String.valueOf(id_part);
-
-        HttpReq.onPostExecuteListener getPartListener = new HttpReq.onPostExecuteListener() {
-            @Override
-            public void postExecute(String resp, String err) {
-                if (err.isEmpty()){
-                    updDataPart(resp);
-                } else {
-                    Toast.makeText(getContext(),err, Toast.LENGTH_LONG).show();
-                    dismiss();
-                }
-            }
-        } ;
-        HttpReq reqGetType = new HttpReq(getPartListener);
-        reqGetType.execute(queryPart);
 
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,7 +152,29 @@ public class DialogAccDataEdt extends DialogFragment {
             }
         });
 
+        startUpdPart();
+
         return v;
+    }
+
+    private void startUpdPart() {
+        String queryPart = "acceptances/parti/"+prefix+"/"+String.valueOf(id_part);
+        if (barcodecont.length()==10){
+            queryPart+="?pallet="+barcodecont;
+        }
+        HttpReq.onPostExecuteListener getPartListener = new HttpReq.onPostExecuteListener() {
+            @Override
+            public void postExecute(String resp, String err) {
+                if (err.isEmpty()){
+                    updDataPart(resp);
+                } else {
+                    Toast.makeText(getContext(),err, Toast.LENGTH_LONG).show();
+                    dismiss();
+                }
+            }
+        } ;
+        HttpReq reqGetType = new HttpReq(getPartListener);
+        reqGetType.execute(queryPart);
     }
 
     private double getKvo() {
@@ -227,7 +234,10 @@ public class DialogAccDataEdt extends DialogFragment {
                 lblMarka.setText(marka);
                 lblPack.setText(pack);
                 lblPart.setText("п. "+numpart+" от "+ DateFormat.format("dd.MM.yy", stringDate).toString()+" ("+src+")");
-
+                double kvo = obj.getDouble("kvo");
+                if (is_new && kvo>0.001){
+                    edtKvo.setText(String.format(Locale.ENGLISH,"%.2f",obj.getDouble("kvo")));
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
                 Toast.makeText(getContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_LONG).show();

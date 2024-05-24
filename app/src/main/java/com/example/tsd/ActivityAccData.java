@@ -284,6 +284,7 @@ public class ActivityAccData extends AppCompatActivity {
         bundle.putInt("numcont",n);
         bundle.putString("barcodecont",barcodecont);
         bundle.putString("prefix",prefix);
+        bundle.putBoolean("new",true);
 
         DialogAccDataEdt.acceptListener listener = new DialogAccDataEdt.acceptListener() {
             @Override
@@ -330,6 +331,7 @@ public class ActivityAccData extends AppCompatActivity {
         bundle.putInt("numcont",data.numcont);
         bundle.putString("barcodecont",data.namcont);
         bundle.putString("prefix",prefix);
+        bundle.putBoolean("new",false);
 
         DialogAccDataEdt.acceptListener listener = new DialogAccDataEdt.acceptListener() {
             @Override

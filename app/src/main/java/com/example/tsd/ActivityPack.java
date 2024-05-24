@@ -141,7 +141,6 @@ public class ActivityPack extends AppCompatActivity {
             @Override
             public void accept(int id_part, double kvo, int kvom, int id_src, int id_master) {
                 insertPack(id_part, kvo, kvom, id_src, id_master, pallet);
-                Toast.makeText(ActivityPack.this,"src: "+id_src+" masrer: "+id_master, Toast.LENGTH_LONG).show();
             }
         };
 

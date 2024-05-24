@@ -37,27 +37,30 @@ public class BarcodDecoder {
         boolean ok=str.length()==13 || str.length()==30 || str.length()==40|| str.length()==50;
         if (ok) {
             ean = str.substring(0, 13);
-            if (str.length() == 30 || str.length() == 40 || str.length() == 50) {
+            try {
+                if (str.length() == 30 || str.length() == 40 || str.length() == 50) {
 
-                type = str.substring(13, 14);
+                    type = str.substring(13, 14);
 
-                String id_p = str.substring(14, 21);
-                id_p = id_p.replace("_", "");
-                id_part = Integer.parseInt(id_p);
+                    String id_p = str.substring(14, 21);
+                    id_p = id_p.replace("_", "");
+                    id_part = Integer.parseInt(id_p);
 
-                numPart = str.substring(21, 25);
+                    numPart = str.substring(21, 25);
 
-                yearPart = Integer.parseInt(str.substring(26, 30));
+                    yearPart = Integer.parseInt(str.substring(26, 30));
 
-                if (str.length() == 40 || str.length() == 50) {
-                    kvo = Integer.parseInt(str.substring(30, 36)) / 100.0;
-                    kvom = Integer.parseInt(str.substring(36,40));
+                    if (str.length() == 40 || str.length() == 50) {
+                        kvo = Integer.parseInt(str.substring(30, 36)) / 100.0;
+                        kvom = Integer.parseInt(str.substring(36,40));
+                    }
+
+                    if (str.length() == 50) {
+                        barcodeCont=str.substring(40);
+                    }
+
                 }
-
-                if (str.length() == 50) {
-                    barcodeCont=str.substring(40);
-                }
-
+            } catch (NumberFormatException e) {
             }
         }
         return new Barcod(ok,id_part,kvo,kvom,type,numPart,yearPart,ean,barcodeCont);

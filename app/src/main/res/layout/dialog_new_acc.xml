@@ -77,13 +77,12 @@
             android:id="@+id/btnAccNewOk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Запись(F1)"
             android:layout_below="@id/spinnerAccType"
             android:layout_alignParentLeft="true"
-            android:layout_marginTop="50dp"
             android:layout_marginLeft="10dp"
+            android:layout_marginTop="50dp"
             android:layout_marginRight="20dp"
-            />
+            android:text="Запись(F1)" />
 
         <Button
             android:id="@+id/btnAccNewCancel"

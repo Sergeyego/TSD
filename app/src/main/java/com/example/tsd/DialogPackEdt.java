@@ -133,8 +133,6 @@ public class DialogPackEdt extends DialogFragment {
             }
         });
 
-        startUpdPart();
-
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -194,6 +192,9 @@ public class DialogPackEdt extends DialogFragment {
             }
         });
 
+
+        startUpdPart();
+
         return v;
     }
 
@@ -214,7 +215,10 @@ public class DialogPackEdt extends DialogFragment {
     }
 
     private void startUpdPart(){
-        String queryPart = "pack/e/parti/"+String.valueOf(id_part);
+        String queryPart = "pack/e/parti/"+String.valueOf(cl_op)+"/"+String.valueOf(id_part);
+        if (pallet.length()==10){
+            queryPart+="?pallet="+pallet;
+        }
         HttpReq.onPostExecuteListener getPartListener = new HttpReq.onPostExecuteListener() {
             @Override
             public void postExecute(String resp, String err) {

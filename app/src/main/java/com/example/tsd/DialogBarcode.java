@@ -18,6 +18,7 @@ import com.journeyapps.barcodescanner.ScanOptions;
 public class DialogBarcode extends AppCompatActivity {
 
     private Button btnCancel;
+    private Button btnOk;
     private Button btnCamera;
     private EditText edtBarcode;
     private String message;
@@ -41,6 +42,7 @@ public class DialogBarcode extends AppCompatActivity {
 
         btnCancel = (Button) findViewById(R.id.btnBarcodeCancel);
         btnCamera = (Button) findViewById(R.id.btnBarcodeCam);
+        btnOk = findViewById(R.id.btnBarcodeOk);
         label = (TextView) findViewById(R.id.lblBarcode);
 
         label.setText(message);
@@ -49,6 +51,13 @@ public class DialogBarcode extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 finish();
+            }
+        });
+
+        btnOk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                accept();
             }
         });
 
@@ -81,6 +90,9 @@ public class DialogBarcode extends AppCompatActivity {
                 //Toast.makeText(getApplicationContext(),keyEvent.toString(), Toast.LENGTH_SHORT).show();
                 if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_F2) {
                     finish();
+                    return true;
+                } else if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_F1){
+                    accept();
                     return true;
                 }
                 return false;

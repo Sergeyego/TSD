@@ -40,11 +40,22 @@
             android:text="Камера" />
 
         <Button
-            android:id="@+id/btnBarcodeCancel"
+            android:id="@+id/btnBarcodeOk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/btnBarcodeCam"
-            android:layout_centerHorizontal="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="20dp"
+            android:text="OK(F1)" />
+
+        <Button
+            android:id="@+id/btnBarcodeCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/btnBarcodeOk"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="10dp"
             android:text="Отмена(F2)" />
     </RelativeLayout>
 
