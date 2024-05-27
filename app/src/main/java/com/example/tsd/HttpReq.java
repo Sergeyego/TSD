@@ -30,7 +30,7 @@ public class HttpReq extends AsyncTask<String , Void ,String> {
         server_response = "";
         server_error = "";
         try {
-            url = new URL("http://192.168.1.114:7000/"+strings[0]);
+            url = new URL("http://192.168.1.10:7000/"+strings[0]);
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestProperty("Content-Type", "application/json");
 

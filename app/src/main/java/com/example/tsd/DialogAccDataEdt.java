@@ -84,7 +84,7 @@ public class DialogAccDataEdt extends DialogFragment {
             barcodecont = args.getString("barcodecont");
             prefix = args.getString("prefix");
             if (kvo!=0){
-                edtKvo.setText(String.format(Locale.ENGLISH,"%.2f",kvo));
+                edtKvo.setText(String.format(Locale.ENGLISH,"%.1f",kvo));
             }
             edtKvoM.setText(String.valueOf(args.getInt("kvom")));
             edtNumCont.setText(String.valueOf(args.getInt("numcont")));
@@ -236,7 +236,7 @@ public class DialogAccDataEdt extends DialogFragment {
                 lblPart.setText("п. "+numpart+" от "+ DateFormat.format("dd.MM.yy", stringDate).toString()+" ("+src+")");
                 double kvo = obj.getDouble("kvo");
                 if (is_new && kvo>0.001){
-                    edtKvo.setText(String.format(Locale.ENGLISH,"%.2f",obj.getDouble("kvo")));
+                    edtKvo.setText(String.format(Locale.ENGLISH,"%.1f",obj.getDouble("kvo")));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

@@ -35,7 +35,7 @@ public class ActivityPack extends AppCompatActivity {
     private PackAdapter adapter;
     int id_cex;
     int cl_op;
-    int current_id_rab;
+    String current_id_rab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +48,7 @@ public class ActivityPack extends AppCompatActivity {
         tvTitle.setText(arguments.get("cex").toString());
         id_cex=arguments.getInt("id_cex",-1);
         cl_op=arguments.getInt("cl_op",-1);
-        current_id_rab=-1;
+        current_id_rab="";
 
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayoutPack);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -139,7 +139,7 @@ public class ActivityPack extends AppCompatActivity {
 
         DialogPackEdt.acceptListener listener = new DialogPackEdt.acceptListener() {
             @Override
-            public void accept(int id_part, double kvo, int kvom, int id_src, int id_master) {
+            public void accept(int id_part, double kvo, int kvom, int id_src, String id_master) {
                 insertPack(id_part, kvo, kvom, id_src, id_master, pallet);
             }
         };
@@ -161,7 +161,7 @@ public class ActivityPack extends AppCompatActivity {
         if (jsonArray.length()>0){
             try {
                 JSONObject obj=jsonArray.getJSONObject(0);
-                current_id_rab=obj.getInt("id");
+                current_id_rab=obj.getString("id");
                 String snam=obj.getString("snam");
                 scanProd(snam);
             } catch (JSONException e) {
@@ -228,7 +228,7 @@ public class ActivityPack extends AppCompatActivity {
         addRabActivityResultLauncher.launch(intent);
     }
 
-    private void insertPack(int id_part, double kvo, int kvom, int id_src, int id_master, String pallet){
+    private void insertPack(int id_part, double kvo, int kvom, int id_src, String id_master, String pallet){
         HttpReq.onPostExecuteListener listener = new HttpReq.onPostExecuteListener() {
             @Override
             public void postExecute(String resp, String err) {

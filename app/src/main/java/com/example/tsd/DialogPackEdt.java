@@ -45,12 +45,26 @@ public class DialogPackEdt extends DialogFragment {
         }
     }
 
+    public static class MasterItem {
+        String nam;
+        String id;
+        MasterItem(String nam, String id) {
+            this.nam = nam;
+            this.id = id;
+        }
+
+        @Override
+        public String toString() {
+            return this.nam;
+        }
+    }
+
     public DialogPackEdt(acceptListener aListener) {
         this.aListener = aListener;
     }
 
     interface acceptListener {
-        void accept(int id_part, double kvo, int kvom, int id_src, int id_master);
+        void accept(int id_part, double kvo, int kvom, int id_src, String id_master);
     }
     private final DialogPackEdt.acceptListener aListener;
 
@@ -64,7 +78,7 @@ public class DialogPackEdt extends DialogFragment {
     private EditText edtKvoM;
     private double mas_ed;
     private int currentIdSrc;
-    private int currentIdMaster;
+    private String currentIdMaster;
 
     private Spinner srcSpinner;
     private Spinner masterSpinner;
@@ -93,7 +107,7 @@ public class DialogPackEdt extends DialogFragment {
 
         id_part=-1;
         currentIdSrc=-1;
-        currentIdMaster=-1;
+        currentIdMaster="";
 
         Bundle args = getArguments();
         if (args != null) {
@@ -123,7 +137,7 @@ public class DialogPackEdt extends DialogFragment {
         masterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                DialogPackEdt.ListItem item = (DialogPackEdt.ListItem) adapterView.getItemAtPosition(i);
+                DialogPackEdt.MasterItem item = (DialogPackEdt.MasterItem) adapterView.getItemAtPosition(i);
                 currentIdMaster=item.id;
             }
 
@@ -196,6 +210,22 @@ public class DialogPackEdt extends DialogFragment {
         startUpdPart();
 
         return v;
+    }
+
+    private void startUpdMaster(){
+        HttpReq.onPostExecuteListener getSrcListener = new HttpReq.onPostExecuteListener() {
+            @Override
+            public void postExecute(String resp, String err) {
+                if (err.isEmpty()){
+                    updMaster(resp);
+                } else {
+                    Toast.makeText(getContext(),err, Toast.LENGTH_LONG).show();
+                    dismiss();
+                }
+            }
+        } ;
+        HttpReq reqGetType = new HttpReq(getSrcListener);
+        reqGetType.execute("pack/e/master");
     }
 
     private void startUpdSpinner(String query, Spinner spinner, int current_id){
@@ -279,7 +309,7 @@ public class DialogPackEdt extends DialogFragment {
                 } else {
                     currentIdSrc=0;
                 }
-                currentIdMaster=obj.getInt("id_master");
+                currentIdMaster=obj.getString("id_master");
 
                 String src=obj.getString("src");
 
@@ -293,8 +323,7 @@ public class DialogPackEdt extends DialogFragment {
                 String querySrc="pack/e/src/"+String.valueOf(cl_op);
                 startUpdSpinner(querySrc,srcSpinner,currentIdSrc);
 
-                String queryMaster="pack/e/master";
-                startUpdSpinner(queryMaster,masterSpinner,currentIdMaster);
+                startUpdMaster();
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -335,6 +364,42 @@ public class DialogPackEdt extends DialogFragment {
         for (int i=0; i<list.size();i++){
             if (list.get(i).id==current_id){
                 spinner.setSelection(i);
+                break;
+            }
+        }
+    }
+
+    private void updMaster(String jsonResp){
+        JSONArray jsonArray = null;
+        List<DialogPackEdt.MasterItem> list;
+        list = new ArrayList<>();
+        list.clear();
+        try {
+            jsonArray = new JSONArray(jsonResp);
+        } catch (JSONException e) {
+            Toast.makeText(getContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        for (int i=0; i<jsonArray.length();i++){
+            try {
+                JSONObject obj=jsonArray.getJSONObject(i);
+                String id=obj.getString("id");
+                String nam = obj.getString("nam");
+                DialogPackEdt.MasterItem a = new DialogPackEdt.MasterItem(nam,id);
+                list.add(a);
+            } catch (JSONException e) {
+                Toast.makeText(getContext(),"Не удалось разобрать ответ от сервера", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter(getContext(), android.R.layout.simple_spinner_item,list);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        masterSpinner.setAdapter(adapter);
+
+        for (int i=0; i<list.size();i++){
+            if (list.get(i).id==currentIdMaster){
+                masterSpinner.setSelection(i);
                 break;
             }
         }
