@@ -398,7 +398,7 @@ public class DialogPackEdt extends DialogFragment {
         masterSpinner.setAdapter(adapter);
 
         for (int i=0; i<list.size();i++){
-            if (list.get(i).id==currentIdMaster){
+            if (list.get(i).id.equals(currentIdMaster)){
                 masterSpinner.setSelection(i);
                 break;
             }
