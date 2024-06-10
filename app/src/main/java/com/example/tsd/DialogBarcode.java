@@ -98,7 +98,7 @@ public class DialogBarcode extends AppCompatActivity {
                 return false;
             }
         });
-
+        edtBarcode.requestFocus();
     }
 
     private void accept(){
